@@ -1,5 +1,7 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+
 
 class Node(object):
   def __init__(self, x, y):
@@ -54,7 +56,7 @@ class Graph(object):
       
     if choices: #we are not blocked in
       choice = choices[0]
-      self.stack.append(choice)
+      self.stack.append((i, j))
       self.recursiveBacktracking(choice)
       
     else: #we are blocked in
@@ -65,28 +67,19 @@ class Graph(object):
       else: #we have hit every node in the maze
         print "done"
 
+  def printGraph(self):
+    for i in range(self.size):
+      for j in range(self.size):
+        print i,j
+        for n in self.graph[i][j].edges:
+          plt.plot([n.node1.coordX, n.node2.coordX], [n.node1.coordY, n.node2.coordY])
+
+    plt.axis([-1, self.size, -1, self.size])
+    plt.show()    
 
 
-
-
-g = Graph(4)
-t = g.test
-t.sort()
-print 
-for i in range(4):
-  for j in range(4):
-    if g.graph[i][j] == 0:
-      print i, j
-# print g.graph
-# for i in g.graph:
-#   for j in g.graph:
-#     print g.gr
-#     print g.graph[i][j].edges
-  # def assignType(self, graph, i, j):
-  #   if (i == 0 or i == 6) and (j == 0 or j == 6):
-  #     return = Node(i, j, 'edge')    
-  #   if (i == 0 or i == 6) and (j == 0 or j == 6):
-  #     return = Node(i, j, 'edge')
+g = Graph(22)
+g.printGraph()
 
 
 
