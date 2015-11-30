@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from Astar2 import Astar
+from astar import Astar
 
 
 class Node(object):
@@ -70,10 +70,12 @@ class Graph(object):
 
 
 
-g = Graph(22)
+g = Graph(8)
 start = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+
 a = Astar(g.graph, start, goal)
+print a.getPath()
 g.printGraph(start, goal)
 a.printPath()
 
