@@ -1,47 +1,91 @@
-class AStar(object):
-    def __init__(self, graph):
-        self.graph = graph
-        
-    def heuristic(self, node, start, end):
-        raise NotImplementedError
-        
-    def search(self, start, end):
-        openset = set()
-        closedset = set()
-        current = start
-        openset.add(current)
-        while openset:
-            current = min(openset, key=lambda o:o.g + o.h)
-            if current == end:
-                path = []
-                while current.parent:
-                    path.append(current)
-                    current = current.parent
-                path.append(current)
-                return path[::-1]
-            openset.remove(current)
-            closedset.add(current)
-            for node in self.graph[current]:
-                if node in closedset:
-                    continue
-                if node in openset:
-                    new_g = current.g + current.move_cost(node)
-                    if node.g > new_g:
-                        node.g = new_g
-                        node.parent = current
-                else:
-                    node.g = current.g + current.move_cost(node)
-                    node.h = self.heuristic(node, start, end)
-                    node.parent = current
-                    openset.add(node)
-        return None
+import matplotlib.pyplot as plt
+
+class Astar():
+	def __init__(self, graph, start, goal):
+		"""	Initialize maze search
+				graph: generated from maze.py 
+				start: tuple starting coordinate
+				goal: tuple goal coordinate
+		"""
+		self.graph = graph 
+		self.start = start 
+		self.goal = goal 
+		self.frontier = [] #priority queue
+		self.came_from = {} #contains previous node
+		self.a_star_search()
+
+	def heuristic(self, node):
+		""" return calculated manhattan distance from node to goal
+				node: node to start from 
+		"""
+		return abs(node[0]-self.goal[0]) + abs(node[1]-self.goal[1])
+	
+	def a_star_search(self):
+		""" traverse the maze and check nodes by priority
+		"""
+		#set up starting node
+		self.addToQueue(self.start, 0) #starting node with 0 priority
+		cost_so_far = {}
+		self.came_from[self.start] = None #starting node has no previous node
+		cost_so_far[self.start] = 0 #no cost so far
+
+		while len(self.frontier): #while there are nodes to check
+			current = self.frontier.pop()[0] #coordinate with highest priority
+
+			if current == self.goal: #if we found goal
+				print "goal!!"
+				print "cost", cost_so_far[current]
+				return #done
+
+			x, y = current
+			for neighbor in self.graph[x][y].neighbors: #for each neighbor around current node
+				newCost = cost_so_far[current] + self.calcWeights(current, neighbor) #calculate new cost
+
+				#if found new node or found a lower cost route to old node
+				if neighbor not in cost_so_far or newCost < cost_so_far[neighbor]: 
+					cost_so_far[neighbor] = newCost #add/update cost
+					priority = newCost + self.heuristic(neighbor) #set priority
+					self.came_from[neighbor] = current #add/update previous node
+					self.addToQueue(neighbor, priority) #add to Queue
+
+		print "maze can not be solved" #no more nodes to check
 
 
-class AStarNode(object):
-    def __init__(self):
-        self.g = 0
-        self.h = 0
-        self.parent = None
-        
-    def move_cost(self, other):
-        raise NotImplementedError
+	def calcWeights(self, node1, node2):
+		"""	return calculated weight moving from node1 to node2
+				introduces penalty for turns
+				node1: tuple coordinate of first node
+				node2: tuple coordinate of second node
+		"""
+		node3 = self.came_from[node1] #where we came from
+		if not node3: #if starting node
+			return 1 
+		elif node1[0] == node2[0] == node3[0]: #if vertical line
+			return 1
+		elif node1[1] == node2[1] == node3[1]: #if horizontal line
+			return 1 
+		else: #turn required
+			return 2 #introduce penalty 2 
+
+	def addToQueue(self, node, priority):
+		"""	Update Queue with new node and its priority
+				output list of nodes sorted by priority
+				format [((x, y), z)] where x, y are node coordinates, z is priority
+				node: tuple coordinate of node
+				priority: integer node priority
+		"""
+		self.frontier.append((node, priority)) #add to list
+		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
+
+	def printPath(self):
+		"""	plot the shortest path from a to b in the maze
+		"""
+		node = self.goal #work backwards
+		last = self.came_from[node] #node we came from
+		while last: #not at starting node
+			plt.plot([last[0], node[0]], [last[1], node[1]], 'red') #plot path
+			node = last #update current node
+			last = self.came_from[last]
+		plt.show()
+
+ 
