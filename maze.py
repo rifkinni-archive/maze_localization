@@ -1,32 +1,15 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+from Astar2 import Astar
 
 
 class Node(object):
   def __init__(self, x, y):
     # self.nodeType = nodeType
-    self.priority = 0
     self.coordX = x #position on a grid
     self.coordY = y 
-    self.edges = []
-
-
-
-class Edge(object):
-  def __init__(self, node1, node2):
-    self.weight = 0
-    self.node1 = node1
-    self.node2 = node2
-    self.nodeReference()
-    encodedInstructions = None
-  def nodeReference(self):
-    self.node1.edges.append(self)
-    self.node2.edges.append(self)
-  def encodeInstructionsByOrientation(self, orientation):
-    pass
-
-
+    self.neighbors = []
 
 class Graph(object):
   def __init__(self, size):
@@ -62,24 +45,39 @@ class Graph(object):
     else: #we are blocked in
       if len(self.stack):
         newI, newJ = self.stack.pop()
-        Edge(self.graph[newI][newJ], self.graph[i][j])
+        self.updateNeighbors((newI, newJ), (i, j))
         self.recursiveBacktracking((newI, newJ))
-      else: #we have hit every node in the maze
-        print "done"
+      #else we have hit every node in the maze
 
-  def printGraph(self):
+  def updateNeighbors(self, coord1, coord2):
+    node1 = self.graph[coord1[0]][coord1[1]]
+    node2 = self.graph[coord2[0]][coord2[1]]
+    node1.neighbors.append(coord2)
+    node2.neighbors.append(coord1)
+
+  def printGraph(self, start, goal):
     for i in range(self.size):
       for j in range(self.size):
-        print i,j
-        for n in self.graph[i][j].edges:
-          plt.plot([n.node1.coordX, n.node2.coordX], [n.node1.coordY, n.node2.coordY])
-
+        for n in self.graph[i][j].neighbors:
+          plt.plot([i, n[0]], [j, n[1]], 'black')
+   
+    radius = float(self.size)/40
     plt.axis([-1, self.size, -1, self.size])
-    plt.show()    
+    begin=plt.Circle(start, radius,color='r')
+    end=plt.Circle(goal, radius,color='g')
+    plt.gcf().gca().add_artist(begin)
+    plt.gcf().gca().add_artist(end)  
+
 
 
 g = Graph(22)
-g.printGraph()
+start = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+a = Astar(g.graph, start, goal)
+g.printGraph(start, goal)
+a.printPath()
+
+
 
 
 
