@@ -44,12 +44,9 @@ class Astar():
 				#if found new node or found a lower cost route to old node
 				if neighbor not in cost_so_far or newCost < cost_so_far[neighbor]: 
 					cost_so_far[neighbor] = newCost #add/update cost
-					priority = newCost + self.heuristic(neighbor) #set priority
+					priority = -(newCost + self.heuristic(neighbor)) #set priority
 					self.came_from[neighbor] = current #add/update previous node
 					self.addToQueue(neighbor, priority) #add to Queue
-
-		print "maze can not be solved" #no more nodes to check
-
 
 	def calcWeights(self, node1, node2):
 		"""	return calculated weight moving from node1 to node2

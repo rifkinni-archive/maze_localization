@@ -105,7 +105,7 @@ goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 g.printGraph(start, goal)
 
 a = Astar(g.graph, start, goal)
-print a.getPath()
+# print a.getPath()
 
 a.printPath()
 
