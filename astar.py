@@ -87,7 +87,6 @@ class Astar():
 			path.append(node)
 			node = last #update current node
 			last = self.came_from[last]
-		path[len(path) - 1]
 		return [path[len(path)-i] for i in range(1, len(path) + 1)]
 
 	def printPath(self):
