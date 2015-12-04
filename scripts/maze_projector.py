@@ -55,4 +55,6 @@ class MazeProjector(object):
     def detectHuman(self):
         """ look at the robot's scan and detect where the human is """
 
-
+        # find a cluster of points within certain
+        for i in range(0, 360):
+            if 

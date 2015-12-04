@@ -106,6 +106,7 @@ g.printGraph(start, goal)
 
 a = Astar(g.graph, start, goal)
 # print a.getPath()
+print a.getInstruction()
 
 a.printPath()
 

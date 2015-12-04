@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import math
 
 class Astar():
 	def __init__(self, graph, start, goal):
@@ -84,7 +85,59 @@ class Astar():
 			path.append(node)
 			node = last #update current node
 			last = self.came_from[last]
-		return [path[len(path)-i] for i in range(1, len(path) + 1)]
+		path.append(node) #add the last node
+		return list(reversed(path))
+
+	def getInstruction(self):
+		l = self.getPath()
+		inst = []
+		orientation = 0
+		tup = [0, 0]
+		for i in range(1, len(l)):
+			
+			if i == 1:
+				orientation = 0
+			else:
+				orientation = inst[i-2][1]
+
+			next = l[i]
+			current = l[i-1]
+
+			# x is equal
+			if next[0] == current[0]:
+				# up
+				if next[1] > current[1]:
+
+					tup[0] = self.getTurn(orientation, 0)
+					tup[1] = 0
+				# down
+				else:
+					tup[0] = self.getTurn(orientation, 2)
+					tup[1] = 2
+			else:
+				# right
+				if next[0] > current[0]:
+					tup[0] = self.getTurn(orientation, 1)
+					tup[1] = 1
+				# left
+				else:
+					tup[0] = self.getTurn(orientation, 3)
+					tup[1] = 3
+			inst.append(tup)
+
+		return inst
+
+	def getTurn(self, first, second):
+		if math.fabs(second - first) == 2:
+			return "full"
+		if second == first:
+			return "no turn"
+		elif second - first > 0:
+			return "right"
+		else:
+			return "left"
+
+
 
 	def printPath(self):
 		"""	plot the shortest path from a to b in the maze
