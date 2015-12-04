@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from astar import Astar
 
 
@@ -82,18 +83,37 @@ class Graph(object):
 
 
   def printGraph(self, start, goal):
+    counter = 0
     for i in range(self.size):
       for j in range(self.size):
         for n in self.graph[i][j].neighbors:
-          self.counter += 1
-          plt.plot([i, n[0]], [j, n[1]], 'black')
+          counter += 1
+          pd = .3
+          #vertical up from (i/n[0],j)
+          if i==n[0] and j < n[1]:
+            rectangle = patches.Rectangle((i-pd, j - pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #vertical up from (i/n[0], n[1])
+          if i==n[0] and j > n[1]:
+            rectangle = patches.Rectangle((i-pd, n[1] - pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #horizontal (i,j/n[1])
+          if j==n[1] and i < n[0]:
+            rectangle = patches.Rectangle((i - pd , j - pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #horizontal (n[0],j/n[1])
+          if j==n[1] and i > n[0]:
+            rectangle = patches.Rectangle((n[0] - pd, j - pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+    print(counter)
    
     radius = float(self.size)/40
     plt.axis([-1, self.size, -1, self.size])
     begin=plt.Circle(start, radius,color='r')
     end=plt.Circle(goal, radius,color='g')
     plt.gcf().gca().add_artist(begin)
-    plt.gcf().gca().add_artist(end)  
+    plt.gcf().gca().add_artist(end)
+    plt.gca().set_axis_bgcolor('black')  
 
 
 
@@ -108,7 +128,6 @@ a = Astar(g.graph, start, goal)
 # print a.getPath()
 
 a.printPath()
-
 
 
 
