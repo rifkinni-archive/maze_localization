@@ -94,7 +94,8 @@ class Astar():
 		orientation = 0
 		tup = [0, 0]
 		for i in range(1, len(l)):
-			
+			tup = [0, 0]
+
 			if i == 1:
 				orientation = 0
 			else:
@@ -102,27 +103,17 @@ class Astar():
 
 			next = l[i]
 			current = l[i-1]
-
 			# x is equal
 			if next[0] == current[0]:
-				# up
-				if next[1] > current[1]:
+				orient = 0 if next[1] > current[1] else 2
+				tup[0] = self.getTurn(orientation, orient)
+				tup[1] = orient
 
-					tup[0] = self.getTurn(orientation, 0)
-					tup[1] = 0
-				# down
-				else:
-					tup[0] = self.getTurn(orientation, 2)
-					tup[1] = 2
 			else:
-				# right
-				if next[0] > current[0]:
-					tup[0] = self.getTurn(orientation, 1)
-					tup[1] = 1
-				# left
-				else:
-					tup[0] = self.getTurn(orientation, 3)
-					tup[1] = 3
+				orient = 1 if next[0] > current[0] else 3
+				tup[0] = self.getTurn(orientation, orient)
+				tup[1] = orient
+				
 			inst.append(tup)
 
 		return inst
