@@ -38,14 +38,14 @@ class MazeProjector(object):
         # somehow make it depended on the odom also
 
         for i in range(0, 360):
-            if i >= 90:
+            if i <= 90:
                 self.projected[i] = distance / math.sin(i*math.pi / 180)
-            elif i >= 180:
-                self.projected[i] = distance / math.sin(i*math.pi / 180)
-            elif i >= 270:
-                self.projected[i] = distance / math.sin(i*math.pi / 180)
+            elif i <= 180:
+                self.projected[i] = distance / math.sin((180-i)*math.pi / 180)
+            elif i <= 270:
+                self.projected[i] = distance / math.sin((i - 180)*math.pi / 180)
             else
-                self.projected[i] = distance / math.sin(i*math.pi / 180)
+                self.projected[i] = distance / math.sin((360 - i)*math.pi / 180)
 
 
 

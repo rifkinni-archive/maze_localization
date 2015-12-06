@@ -119,6 +119,7 @@ class Astar():
 		return inst
 
 	def getTurn(self, first, second):
+		""" get the instruction depending on the orientation """
 		if math.fabs(second - first) == 2:
 			return "full"
 		if second == first:

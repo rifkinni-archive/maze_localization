@@ -7,6 +7,9 @@ import math
 import rospy
 from sensor_msgs.msg import LaserScan
 from maze_projector import MazeProjector
+from geometry_msgs.msg import Twist, Vector3
+from maze import Graph
+from astar import Astar
 
 class MazeRobot(object):
     """ Main controller for the robot maze solver """
@@ -18,6 +21,19 @@ class MazeRobot(object):
         self.projected = []
 
         self.MazeProjector = MazeProjector()
+        self.graph = Graph(10)
+
+        start = (0, 0)
+        goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+
+        g.printGraph(start, goal)
+
+        a = Astar(g.graph, start, goal)
+
+        self.instruction = a.getInstruction()
+
+        self.currentI = 0
+        self.twist = Twist()
 
         self.maze = self.MazeProjector.projected
 
@@ -27,10 +43,27 @@ class MazeRobot(object):
         
     def callbackScan(self, data):
         self.MazeProjector.callbackScan(data)
+        self.performInstruction()
 
     def callbackOdom(self, data):
         self.MazeProjector.callbackOdom(data)
 
+    def performInstruction(self):
+        instruction = self.instruction[currentI]
+
+        if instruction[0] == "left":
+            # turn left
+            
+        elif instruction[0] == "right":
+            # turn right
+            
+        elif instruction[0] == "no turn":
+            pass
+        elif instruction[0] == "full":
+            # turn left
+            # turn left
+        else:
+            print "instruction is not valid"
             
     def run(self):
         """ Our main 5Hz run loop """
