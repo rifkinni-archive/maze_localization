@@ -6,7 +6,6 @@ from astar import Astar
 
 class Node(object):
   def __init__(self, x, y):
-    # self.nodeType = nodeType
     self.coordX = x #position on a grid
     self.coordY = y 
     self.neighbors = []
@@ -17,36 +16,51 @@ class Graph(object):
     self.graph = [[0 for x in range(self.size)] for x in range(self.size)]
     self.stack = [(0,0)]
     self.test = []
-    self.counter = 0
     self.recursiveBacktracking((0, 0))
     self.addEdges()
 
-  def getNodeChoices(self, i, j):
-    directions = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
-    choices = []
-    for x, y in directions:
-      if (x >= 0) and (y >=0):
-        if (x < self.size) and (y < self.size):
-          if self.graph[x][y] == 0:
-            choices.append((x, y))
-    random.shuffle(choices)
-    return choices
-
   def getNodeNeighbors(self, i, j):
+    """things to test:
+      returns array of length between 2 and 4
+      if length 2 it i, j is a corner (i or j has only 0 or self.size - 1)
+      if length 3, i, j is an edge (i or j has a 0 or a self.size -1)
+    """
     directions = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
     choices = []
     for x, y in directions:
       if (x >= 0) and (y >=0):
         if (x < self.size) and (y < self.size):
           choices.append((x, y))
-    
-    choices = [a for a in choices if a not in self.graph[i][j].neighbors]
+    return choices
+
+  def getNodesEmpty(self, i, j):
+    """things to test:
+      ???
+    """
+    choices = []
+    for neighbor in self.getNodeNeighbors(i, j):
+      if self.graph[neighbor[0]][neighbor[1]] == 0:
+        choices.append(neighbor)
+    random.shuffle(choices)
+    return choices
+
+
+  def getNodesAvailable(self, i, j):
+    """things to test:
+      ???
+    """
+    choices = [a for a in self.getNodeNeighbors(i, j) if a not in self.graph[i][j].neighbors]
     random.shuffle(choices)
     return choices
 
   def recursiveBacktracking(self, indices):
+    """things to test:
+      every node has at least one neighbor
+      every node is a node object (not 0)
+
+    """
     i, j = indices
-    choices = self.getNodeChoices(i, j)
+    choices = self.getNodesEmpty(i, j)
 
     if self.graph[i][j] == 0:
       self.graph[i][j] = Node(i, j)
@@ -64,16 +78,23 @@ class Graph(object):
       #else we have hit every node in the maze
 
   def updateNeighbors(self, coord1, coord2):
+    """things to test:
+      node1 is node2's neighbor
+      node2 is node1's neighbor
+    """
     node1 = self.graph[coord1[0]][coord1[1]]
     node2 = self.graph[coord2[0]][coord2[1]]
     node1.neighbors.append(coord2)
     node2.neighbors.append(coord1)
 
   def addEdges(self):
+    """things to test:
+      ???
+    """
     counter = 0
     while True:
       x, y = [random.randint(0, self.size - 1), random.randint(0, self.size - 1)]
-      available = self.getNodeNeighbors(x, y)
+      available = self.getNodesAvailable(x, y)
       if available:
         self.updateNeighbors((x, y), available[0])
         counter +=1
@@ -85,7 +106,6 @@ class Graph(object):
     for i in range(self.size):
       for j in range(self.size):
         for n in self.graph[i][j].neighbors:
-          self.counter += 1
           plt.plot([i, n[0]], [j, n[1]], 'black')
    
     radius = float(self.size)/40
@@ -98,14 +118,14 @@ class Graph(object):
 
 
 
-g = Graph(10)
+g = Graph(5)
 start = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 
 g.printGraph(start, goal)
 
 a = Astar(g.graph, start, goal)
-# print a.getPath()
+print a.getPath()
 
 a.printPath()
 
