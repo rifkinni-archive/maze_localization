@@ -18,6 +18,7 @@ class MazeProjector(object):
         
 
         self.scan = []
+        self.odom =[]
         self.projected = []
 
         self.current = 0
@@ -25,27 +26,33 @@ class MazeProjector(object):
     def callbackScan(self, data):
         self.scan = data.ranges
 
-
     def callbackOdom(self, data):
-        self.scan = data.pose
+        self.odom = data.pose
         
-    def projectMaze(self):
+    def projectMaze(self, currentNode, neighbors):
         """ set projected to the virtual maze """
-        self.projected = self.scan
         
-        distance = 1
+        wallDistance = 1
 
-        # somehow make it depended on the odom also
+        currentNode
+        for i in neighbors:
+            current = currentNode
+            next = i
 
+            if next[0] == current[0]:
+                orient = 0 if next[1] > current[1] else 2        
+            else:
+                orient = 1 if next[0] > current[0] else 3
+        
         for i in range(0, 360):
             if i <= 90:
-                self.projected[i] = distance / math.sin(i*math.pi / 180)
+                self.projected[i] = wallDistance / math.sin(i*math.pi / 180)
             elif i <= 180:
-                self.projected[i] = distance / math.sin((180-i)*math.pi / 180)
+                self.projected[i] = wallDistance / math.sin((180-i)*math.pi / 180)
             elif i <= 270:
-                self.projected[i] = distance / math.sin((i - 180)*math.pi / 180)
+                self.projected[i] = wallDistance / math.sin((i - 180)*math.pi / 180)
             else
-                self.projected[i] = distance / math.sin((360 - i)*math.pi / 180)
+                self.projected[i] = wallDistance / math.sin((360 - i)*math.pi / 180)
 
 
 
@@ -57,4 +64,4 @@ class MazeProjector(object):
 
         # find a cluster of points within certain
         for i in range(0, 360):
-            if 
+            pass
