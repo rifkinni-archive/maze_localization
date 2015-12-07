@@ -22,6 +22,7 @@ class MazeProjector(object):
         self.projected = []
 
         self.current = 0
+        self.wallDistance = 1
         
     def callbackScan(self, data):
         self.scan = data.ranges
@@ -29,33 +30,33 @@ class MazeProjector(object):
     def callbackOdom(self, data):
         self.odom = data.pose
         
-    def projectMaze(self, currentNode, neighbors):
+    def projectMaze(self, currentNode, neighbors, direct):
         """ set projected to the virtual maze """
         
-        wallDistance = 1
-
-        currentNode
+        wall = [0,0,0,0] 
         for i in neighbors:
             current = currentNode
             next = i
 
             if next[0] == current[0]:
-                orient = 0 if next[1] > current[1] else 2        
+                orient = 0 if next[1] > current[1] else 2
             else:
                 orient = 1 if next[0] > current[0] else 3
-        
+            wall[orient] = 1
+
+        wall = wall[direct:]+ wall[:direct]
+
         for i in range(0, 360):
-            if i <= 90:
-                self.projected[i] = wallDistance / math.sin(i*math.pi / 180)
-            elif i <= 180:
-                self.projected[i] = wallDistance / math.sin((180-i)*math.pi / 180)
-            elif i <= 270:
-                self.projected[i] = wallDistance / math.sin((i - 180)*math.pi / 180)
-            else
-                self.projected[i] = wallDistance / math.sin((360 - i)*math.pi / 180)
+            if i <= 90 and wall[0]:
+                self.projected[i] = self.wallDistance / math.sin(i*math.pi / 180)
+            elif i <= 180 and wall[1]:
+                self.projected[i] = self.wallDistance / math.sin((180-i)*math.pi / 180)
+            elif i <= 270 and wall[2]:
+                self.projected[i] = self.wallDistance / math.sin((i - 180)*math.pi / 180)
+            elif i <=360 and wall[3]
+                self.projected[i] = self.wallDistance / math.sin((360 - i)*math.pi / 180)
 
-
-
+        wall = [0,0,0,0]
 
         return self.projected
 
