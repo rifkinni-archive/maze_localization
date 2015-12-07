@@ -22,11 +22,6 @@ class Astar():
 	
 	def a_star_search(self):
 		""" traverse the maze and check nodes by priority
-
-			things to test: run algorithm with no return statement (equivalent to brute force traversing),
-			get cost whenever we reach the goal, confirm that the minimum is equal to what the algorithm returns
-
-			count number of turns and number of nodes traversed and confirm that they make sense
 		"""
 		#set up starting node
 		self.addToQueue(self.start, 0) #starting node with 0 priority
@@ -58,9 +53,6 @@ class Astar():
 				introduces penalty for turns
 				node1: tuple coordinate of first node
 				node2: tuple coordinate of second node
-
-				things to test: count number of turns for all paths in aStar original algorithm
-
 		"""
 		node3 = self.came_from[node1] #where we came from
 		if not node3: #if starting node
@@ -104,6 +96,8 @@ class Astar():
 			node = last #update current node
 			last = self.came_from[last]
 		plt.show()
+
+
 
 
 

@@ -1,11 +1,13 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from astar import Astar
 
 
 class Node(object):
   def __init__(self, x, y):
+    # self.nodeType = nodeType
     self.coordX = x #position on a grid
     self.coordY = y 
     self.neighbors = []
@@ -16,8 +18,20 @@ class Graph(object):
     self.graph = [[0 for x in range(self.size)] for x in range(self.size)]
     self.stack = [(0,0)]
     self.test = []
+    self.counter = 0
     self.recursiveBacktracking((0, 0))
     self.addEdges()
+
+  def getNodeChoices(self, i, j):
+    directions = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
+    choices = []
+    for x, y in directions:
+      if (x >= 0) and (y >=0):
+        if (x < self.size) and (y < self.size):
+          if self.graph[x][y] == 0:
+            choices.append((x, y))
+    random.shuffle(choices)
+    return choices
 
   def getNodeNeighbors(self, i, j):
     """things to test:
@@ -31,25 +45,8 @@ class Graph(object):
       if (x >= 0) and (y >=0):
         if (x < self.size) and (y < self.size):
           choices.append((x, y))
-    return choices
-
-  def getNodesEmpty(self, i, j):
-    """things to test:
-      ???
-    """
-    choices = []
-    for neighbor in self.getNodeNeighbors(i, j):
-      if self.graph[neighbor[0]][neighbor[1]] == 0:
-        choices.append(neighbor)
-    random.shuffle(choices)
-    return choices
-
-
-  def getNodesAvailable(self, i, j):
-    """things to test:
-      ???
-    """
-    choices = [a for a in self.getNodeNeighbors(i, j) if a not in self.graph[i][j].neighbors]
+    
+    choices = [a for a in choices if a not in self.graph[i][j].neighbors]
     random.shuffle(choices)
     return choices
 
@@ -60,7 +57,7 @@ class Graph(object):
 
     """
     i, j = indices
-    choices = self.getNodesEmpty(i, j)
+    choices = self.getNodeChoices(i, j)
 
     if self.graph[i][j] == 0:
       self.graph[i][j] = Node(i, j)
@@ -82,19 +79,18 @@ class Graph(object):
       node1 is node2's neighbor
       node2 is node1's neighbor
     """
+
+
     node1 = self.graph[coord1[0]][coord1[1]]
     node2 = self.graph[coord2[0]][coord2[1]]
     node1.neighbors.append(coord2)
     node2.neighbors.append(coord1)
 
   def addEdges(self):
-    """things to test:
-      ???
-    """
     counter = 0
     while True:
       x, y = [random.randint(0, self.size - 1), random.randint(0, self.size - 1)]
-      available = self.getNodesAvailable(x, y)
+      available = self.getNodeNeighbors(x, y)
       if available:
         self.updateNeighbors((x, y), available[0])
         counter +=1
@@ -103,34 +99,51 @@ class Graph(object):
 
 
   def printGraph(self, start, goal):
+    counter = 0
     for i in range(self.size):
       for j in range(self.size):
         for n in self.graph[i][j].neighbors:
-          plt.plot([i, n[0]], [j, n[1]], 'black')
+          counter += 1
+          pd = .3
+          #vertical up from (i/n[0],j)
+          if i==n[0] and j < n[1]:
+            rectangle = patches.Rectangle((i-pd, j - pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #vertical up from (i/n[0], n[1])
+          if i==n[0] and j > n[1]:
+            rectangle = patches.Rectangle((i-pd, n[1] - pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #horizontal (i,j/n[1])
+          if j==n[1] and i < n[0]:
+            rectangle = patches.Rectangle((i - pd , j - pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+          #horizontal (n[0],j/n[1])
+          if j==n[1] and i > n[0]:
+            rectangle = patches.Rectangle((n[0] - pd, j - pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+    print(counter)
    
     radius = float(self.size)/40
     plt.axis([-1, self.size, -1, self.size])
     begin=plt.Circle(start, radius,color='r')
     end=plt.Circle(goal, radius,color='g')
     plt.gcf().gca().add_artist(begin)
-    plt.gcf().gca().add_artist(end)  
+    plt.gcf().gca().add_artist(end)
+    plt.gca().set_axis_bgcolor('black')  
 
 
 
 
-g = Graph(5)
+g = Graph(10)
 start = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
 
 g.printGraph(start, goal)
 
 a = Astar(g.graph, start, goal)
-print a.getPath()
+# print a.getPath()
 
 a.printPath()
-
-
-
 
 
 
