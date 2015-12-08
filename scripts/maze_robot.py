@@ -20,11 +20,11 @@ class MazeRobot(object):
         """ Main controller """
         rospy.init_node('maze_robot')
 
-        self.odom = []
-        self.prevOdom = []
+        self.odom = None
+        self.prevOdom = None
 
 
-        self.MazeProjector = MazeProjector()
+        self.projector = MazeProjector()
         self.solver = MazeSolver()
         self.instructions = self.solver.getInstructions()
 
@@ -37,33 +37,44 @@ class MazeRobot(object):
         self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         rospy.Subscriber('/odom', Odometry, self.callbackOdom)
         rospy.Subscriber('/scan', LaserScan, self.callbackScan)
+
         
     def callbackScan(self, data):
-        # self.MazeProjector.callbackScan(data)
+        self.projector.scan = data.ranges
         self.performInstruction()
 
     def callbackOdom(self, data):
-        self.MazeProjector.callbackOdom(data)
+        self.projector.odom = data.pose
         self.odom = self.convert_pose_to_xy_and_theta(data.pose)
+        if not self.prevOdom:
+            self.prevOdom = self.odom
 
     def performInstruction(self):
+        if self.currentI >= len(self.instructions):
+            self.twist.linear.x = 0
+            self.twist.linear.z = 0
+            print "done traversing the maze"
+            return
+
         instruction = self.instructions[self.currentI]
+        print instruction
         distance = 1
         c = 1
 
-        self.prevOdom = self.odom
-
         diffA = self.turnToAngle(instruction[0]) - self.differenceA(self.odom, self.prevOdom)
         diffD = distance - self.differenceP(self.odom, self.prevOdom)
+        print "diffA", diffA, "angle", self.turnToAngle(instruction[0]), self.differenceA(self.odom, self.prevOdom)
+        print "diffD", diffD, self.differenceP(self.odom, self.prevOdom)
 
-        if diffA < .01:
+        if diffA < .1:
             self.turn = False
         
-        if diffD < .01:
-            if self.currentI >= len(self.instructions):
-                self.twist.linear.x = 0
-                self.twist.linear.z = 0
-                print "done traversing the maze"
+        if diffD < .1:
+            # if self.currentI >= len(self.instructions):
+            #     self.twist.linear.x = 0
+            #     self.twist.linear.z = 0
+            #     print "done traversing the maze"
+            #     return
 
             self.currentI += 1
             self.turn = True
@@ -73,8 +84,8 @@ class MazeRobot(object):
             neighbors = self.solver.getNeighbors(currentNode)
 
             # pass in neighbors and current node to MazeProjector
-            self.MazeProjector.projectMaze(currentNode, neighbors)
-            self.laserScan.ranges = self.MazeProjector.projected
+            # self.projector.projectMaze(currentNode, neighbors)
+            self.laserScan.ranges = self.projector.projected
 
             # # pass in neighbors and current node to MazeProjector
 
@@ -100,14 +111,14 @@ class MazeRobot(object):
             return math.pi
 
     def differenceP(self, current, previous):
-        if len(current) and len(previous):
+        if current and previous:
+            print "current, previous", current, previous
             return math.pow((current[0] - previous[0])**2 + (current[1] - previous[1])**2, 1/2)
         else:
             return 0
 
     def differenceA(self, current, previous):
-        if len(current) and len(previous):
-            print current, previous
+        if current and previous:
             return current[2] - previous[2]
         else:
             return 0

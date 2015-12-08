@@ -24,11 +24,11 @@ class MazeProjector(object):
         self.current = 0
         self.wallDistance = 1
         
-    def callbackScan(self, data):
-        self.scan = data.ranges
+    # def callbackScan(self, data):
+    #     self.scan = data.ranges
 
-    def callbackOdom(self, data):
-        self.odom = data.pose
+    # def callbackOdom(self, data):
+    #     self.odom = data.pose
         
     def projectMaze(self, currentNode, neighbors, direct):
         """ set projected to the virtual maze """
