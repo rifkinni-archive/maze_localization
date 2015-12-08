@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+### !/usr/bin/env python
 
 """ This ROS node uses proportional control to guide a robot to a specified
     distance from the obstacle immediately in front of it """
@@ -14,12 +14,12 @@ class MazeProjector(object):
         """ Initialize a node with the specified target distance
             from the forward obstacle """
 
-        rospy.init_node('project_maze')
+        # rospy.init_node('project_maze')
         
 
         self.scan = []
         self.odom =[]
-        self.projected = []
+        self.projected = [0]*360
 
         self.current = 0
         
@@ -45,19 +45,10 @@ class MazeProjector(object):
                 orient = 1 if next[0] > current[0] else 3
         
         for i in range(0, 360):
-            if i <= 90:
-                self.projected[i] = wallDistance / math.sin(i*math.pi / 180)
-            elif i <= 180:
-                self.projected[i] = wallDistance / math.sin((180-i)*math.pi / 180)
-            elif i <= 270:
-                self.projected[i] = wallDistance / math.sin((i - 180)*math.pi / 180)
-            else
-                self.projected[i] = wallDistance / math.sin((360 - i)*math.pi / 180)
-
-
-
-
-        return self.projected
+            if math.cos(i * math.pi / 180) == 0:
+                self.projected[i] = 10 #a large number
+            else:
+                self.projected[i] = wallDistance / math.cos(i * math.pi / 180)
 
     def detectHuman(self):
         """ look at the robot's scan and detect where the human is """

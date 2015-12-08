@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import math
 
 class Astar():
 	def __init__(self, graph, start, goal):
@@ -14,6 +13,7 @@ class Astar():
 		self.frontier = [] #priority queue
 		self.came_from = {} #contains previous node
 		self.a_star_search()
+		# self.path = self.getPath()
 
 	def heuristic(self, node):
 		""" return calculated manhattan distance from node to goal
@@ -75,72 +75,20 @@ class Astar():
 		self.frontier.append((node, priority)) #add to list
 		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
 
-	def getPath(self):
-		path = []
+	# def getPath(self):
+	# 	path = []
 
-		node = self.goal #work backwards
-		last = self.came_from[node] #node we came from
+	# 	node = self.goal #work backwards
+	# 	last = self.came_from[node] #node we came from
 		
-		while last: #not at starting node
-			path.append(node)
-			node = last #update current node
-			last = self.came_from[last]
-		path.append(node) #add the last node
-		return list(reversed(path))
-
-	def getInstruction(self):
-		l = self.getPath()
-		inst = []
-		orientation = 0
-		tup = [0, 0]
-		for i in range(1, len(l)):
-			tup = [0, 0]
-
-			if i == 1:
-				orientation = 0
-			else:
-				orientation = inst[i-2][1]
-
-			next = l[i]
-			current = l[i-1]
-			# x is equal
-			if next[0] == current[0]:
-				orient = 0 if next[1] > current[1] else 2
-				tup[0] = self.getTurn(orientation, orient)
-				tup[1] = orient
-
-			else:
-				orient = 1 if next[0] > current[0] else 3
-				tup[0] = self.getTurn(orientation, orient)
-				tup[1] = orient
-				
-			inst.append(tup)
-
-		return inst
-
-	def getTurn(self, first, second):
-		""" get the instruction depending on the orientation """
-		if math.fabs(second - first) == 2:
-			return "full"
-		if second == first:
-			return "no turn"
-		elif second - first > 0:
-			return "right"
-		else:
-			return "left"
+	# 	while last: #not at starting node
+	# 		path.append(node)
+	# 		node = last #update current node
+	# 		last = self.came_from[last]
+	# 	path.append(node) #add the last node
+	# 	return list(reversed(path))
 
 
-
-	def printPath(self):
-		"""	plot the shortest path from a to b in the maze
-		"""
-		node = self.goal #work backwards
-		last = self.came_from[node] #node we came from
-		while last: #not at starting node
-			plt.plot([last[0], node[0]], [last[1], node[1]], 'red') #plot path
-			node = last #update current node
-			last = self.came_from[last]
-		plt.show()
 
 
 
