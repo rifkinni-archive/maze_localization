@@ -13,6 +13,7 @@ from maze_solver import MazeSolver
 # from maze import Graph
 # from astar import Astar
 from tf.transformations import euler_from_quaternion
+import sys
 
 class MazeRobot(object):
     """ Main controller for the robot maze solver """
@@ -52,29 +53,23 @@ class MazeRobot(object):
     def performInstruction(self):
         if self.currentI >= len(self.instructions):
             self.twist.linear.x = 0
-            self.twist.linear.z = 0
+            self.twist.angular.z = 0
             print "done traversing the maze"
-            return
+            sys.exit()
 
         instruction = self.instructions[self.currentI]
-        print instruction
         distance = 1
-        c = 1
+        c = .5
 
         diffA = self.turnToAngle(instruction[0]) - self.differenceA(self.odom, self.prevOdom)
         diffD = distance - self.differenceP(self.odom, self.prevOdom)
-        print "diffA", diffA, "angle", self.turnToAngle(instruction[0]), self.differenceA(self.odom, self.prevOdom)
-        print "diffD", diffD, self.differenceP(self.odom, self.prevOdom)
 
-        if diffA < .1:
+        if abs(diffA) < .05:
+            print "done turning"
             self.turn = False
         
-        if diffD < .1:
-            # if self.currentI >= len(self.instructions):
-            #     self.twist.linear.x = 0
-            #     self.twist.linear.z = 0
-            #     print "done traversing the maze"
-            #     return
+        if abs(diffD) < .05:
+            print "next node"
 
             self.currentI += 1
             self.turn = True
@@ -92,8 +87,10 @@ class MazeRobot(object):
         # c is a constant that doesnt exist yet
         if self.turn:
             self.twist.angular.z = c * diffA
+            self.twist.linear.x = 0
         else:
             self.twist.linear.x = c *diffD
+            self.twist.angular.z = 0
 
     def turnToAngle(self, instruction):
         if instruction == "left":
@@ -112,8 +109,7 @@ class MazeRobot(object):
 
     def differenceP(self, current, previous):
         if current and previous:
-            print "current, previous", current, previous
-            return math.pow((current[0] - previous[0])**2 + (current[1] - previous[1])**2, 1/2)
+            return math.sqrt((current[0] - previous[0])**2 + (current[1] - previous[1])**2)
         else:
             return 0
 
@@ -122,6 +118,9 @@ class MazeRobot(object):
             return current[2] - previous[2]
         else:
             return 0
+
+    def radToD(self, angle):
+        return angle*180/math.pi
         
 
     def convert_pose_to_xy_and_theta(self, pose):

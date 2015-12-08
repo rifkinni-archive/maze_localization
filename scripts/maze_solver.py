@@ -46,16 +46,28 @@ class MazeSolver():
 
     return inst
 
-  def getTurn(self, first, second):
+  def getTurn(self, current, _next):
     """ get the instruction depending on the orientation """
-    if abs(second - first) == 2:
+    if abs(_next - current) == 2:
       return "full"
-    if second == first:
+    if _next == current:
       return "no turn"
-    elif second - first > 0:
-      return "right"
-    elif first - second > 0:
-      return "left"
+    elif current == 1  or current == 2:
+      if _next - current > 0:
+        return "right"
+      else:
+        return "left"
+    elif current == 0:
+      if _next == 1:
+        return "right"
+      else:
+        return "left"
+    elif current == 3:
+      if _next == 0:
+        return "right"
+      else:
+        return "left"
+
 
   def getNeighbors(self, coord):
     x = coord[0]
