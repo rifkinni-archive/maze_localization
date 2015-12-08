@@ -42,32 +42,18 @@ class MazeProjector(object):
                 orient = 0 if next[1] > current[1] else 2
             else:
                 orient = 1 if next[0] > current[0] else 3
-<<<<<<< HEAD
+            
+            wall[orient] = 1
+
+        wall = wall[direct:]+ wall[:direct]
         
         for i in range(0, 360):
             if math.cos(i * math.pi / 180) == 0:
                 self.projected[i] = 10 #a large number
             else:
                 self.projected[i] = wallDistance / math.cos(i * math.pi / 180)
-=======
-            wall[orient] = 1
-
-        wall = wall[direct:]+ wall[:direct]
-
-        for i in range(0, 360):
-            if i <= 90 and wall[0]:
-                self.projected[i] = self.wallDistance / math.sin(i*math.pi / 180)
-            elif i <= 180 and wall[1]:
-                self.projected[i] = self.wallDistance / math.sin((180-i)*math.pi / 180)
-            elif i <= 270 and wall[2]:
-                self.projected[i] = self.wallDistance / math.sin((i - 180)*math.pi / 180)
-            elif i <=360 and wall[3]
-                self.projected[i] = self.wallDistance / math.sin((360 - i)*math.pi / 180)
-
         wall = [0,0,0,0]
 
-        return self.projected
->>>>>>> b621569904a3b41de9387ef6863b41ddcd56bddf
 
     def detectHuman(self):
         """ look at the robot's scan and detect where the human is """

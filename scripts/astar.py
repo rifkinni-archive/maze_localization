@@ -13,7 +13,6 @@ class Astar():
 		self.frontier = [] #priority queue
 		self.came_from = {} #contains previous node
 		self.a_star_search()
-		# self.path = self.getPath()
 
 	def heuristic(self, node):
 		""" return calculated manhattan distance from node to goal
