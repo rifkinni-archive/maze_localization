@@ -53,7 +53,7 @@ class MazeRobot(object):
     def performInstruction(self):
         if self.currentI >= len(self.instructions):
             self.twist.linear.x = 0
-            self.twist.angular.z = 0
+            self.twist.angular.z = -
             print "done traversing the maze"
             sys.exit()
 
