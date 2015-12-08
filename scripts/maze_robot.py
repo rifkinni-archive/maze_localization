@@ -20,8 +20,22 @@ class MazeRobot(object):
         """ Main controller """
         rospy.init_node('maze_robot')
 
+<<<<<<< HEAD
         self.odom = []
         self.prevOdom = []
+=======
+        self.scan = []
+        self.projected = []
+
+        # self.MazeProjector = MazeProjector()
+        
+        self.graph = Graph(10)
+
+        start = (0, 0)
+        goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+
+        self.graph.printGraph(start, goal)
+>>>>>>> b621569904a3b41de9387ef6863b41ddcd56bddf
 
 
         self.MazeProjector = MazeProjector()
@@ -34,7 +48,7 @@ class MazeRobot(object):
         self.turn = True
 
 
-        self.maze = self.MazeProjector.projected
+        # self.maze = self.MazeProjector.projected
 
         self.pubScan = rospy.Publisher('/maze_scan', LaserScan, queue_size=10)
         self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
@@ -42,12 +56,17 @@ class MazeRobot(object):
         rospy.Subscriber('/scan', LaserScan, self.callbackScan)
         
     def callbackScan(self, data):
-        self.MazeProjector.callbackScan(data)
+        # self.MazeProjector.callbackScan(data)
         self.performInstruction()
 
     def callbackOdom(self, data):
+<<<<<<< HEAD
         self.MazeProjector.callbackOdom(data)
         self.odom = self.convert_pose_to_xy_and_theta(data.pose)
+=======
+        # self.MazeProjector.callbackOdom(data)
+        self.odom = convert_pose_to_xy_and_theta(data.pose)
+>>>>>>> b621569904a3b41de9387ef6863b41ddcd56bddf
 
     def performInstruction(self):
         instruction = self.instructions[self.currentI]
@@ -72,18 +91,26 @@ class MazeRobot(object):
             self.turn = True
             self.prevOdom = self.odom
 
+<<<<<<< HEAD
             currentNode = self.solver.path[self.currentI]
             neighbors = self.solver.getNeighbors(currentNode)
 
             # pass in neighbors and current node to MazeProjector
             self.MazeProjector.projectMaze(currentNode, neighbors)
             self.laserScan.ranges = self.MazeProjector.projected
+=======
+            # currentNode = self.path[currentI]
+            # neighbors = self.graph[currentNode[0]][currentNode[1]].neighbors
+>>>>>>> b621569904a3b41de9387ef6863b41ddcd56bddf
 
+            # # pass in neighbors and current node to MazeProjector
+            # self.MazeProjector.projectMaze(currentNode, neighbors, self.instruction[currentI][1])
 
+        # c is a constant that doesnt exist yet
         if self.turn:
             self.twist.angular.z = c * diffA
         else:
-            self.twist.linear.x = c*diffD
+            self.twist.linear.x = c *diffD
 
     def turnToAngle(self, instruction):
         if instruction == "left":
@@ -128,7 +155,11 @@ class MazeRobot(object):
 
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
+<<<<<<< HEAD
             self.pubScan.publish(self.laserScan)
+=======
+            # self.pubSub.publish("?")
+>>>>>>> b621569904a3b41de9387ef6863b41ddcd56bddf
             self.pubVel.publish(self.twist)
             r.sleep()
 

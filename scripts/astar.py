@@ -75,21 +75,4 @@ class Astar():
 		self.frontier.append((node, priority)) #add to list
 		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
 
-	# def getPath(self):
-	# 	path = []
-
-	# 	node = self.goal #work backwards
-	# 	last = self.came_from[node] #node we came from
-		
-	# 	while last: #not at starting node
-	# 		path.append(node)
-	# 		node = last #update current node
-	# 		last = self.came_from[last]
-	# 	path.append(node) #add the last node
-	# 	return list(reversed(path))
-
-
-
-
-
  
