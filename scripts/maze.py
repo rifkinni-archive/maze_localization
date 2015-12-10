@@ -1,7 +1,12 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+<<<<<<< HEAD:scripts/maze.py
 # from astar import Astar
+=======
+import matplotlib.patches as patches
+from astar import Astar
+>>>>>>> master:maze.py
 
 
 class Node(object):
@@ -82,9 +87,14 @@ class Graph(object):
 
 
   def printGraph(self, start, goal):
+    counter = 0
     for i in range(self.size):
       for j in range(self.size):
         for n in self.graph[i][j].neighbors:
+<<<<<<< HEAD:scripts/maze.py
+=======
+          counter += 1
+>>>>>>> master:maze.py
           pd = .3
           #vertical up from (i/n[0],j)
           if i==n[0] and j < n[1]:
@@ -102,6 +112,11 @@ class Graph(object):
           if j==n[1] and i > n[0]:
             rectangle = patches.Rectangle((n[0] - pd, j - pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
             plt.gca().add_patch(rectangle)
+<<<<<<< HEAD:scripts/maze.py
+=======
+    print(counter)
+   
+>>>>>>> master:maze.py
     radius = float(self.size)/40
     plt.axis([-1, self.size, -1, self.size])
     begin=plt.Circle(start, radius,color='r')
@@ -109,7 +124,23 @@ class Graph(object):
     plt.gcf().gca().add_artist(begin)
     plt.gcf().gca().add_artist(end)
     plt.gca().set_axis_bgcolor('black')  
+<<<<<<< HEAD:scripts/maze.py
+=======
 
+
+
+
+g = Graph(10)
+start = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+goal = (random.randint(0, g.size - 1), random.randint(0, g.size - 1))
+
+g.printGraph(start, goal)
+
+a = Astar(g.graph, start, goal)
+# print a.getPath()
+
+a.printPath()
+>>>>>>> master:maze.py
 
 
 
