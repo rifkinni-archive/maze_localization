@@ -24,13 +24,17 @@ class MazeRobot(object):
         self.projector = MazeProjector()
         self.solver = MazeSolver()
 
-        self.currentI = 0
+        self.currentI = 0 #index to keep track of our instruction
         self.twist = Twist()
         self.laserScan = LaserScan()
-        self.turn = True
+        self.turn = True #turning or moving straight
 
+
+        #publish robot commands and fake lidar data
         self.pubScan = rospy.Publisher('/maze_scan', LaserScan, queue_size=10)
-        self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10) 
+
+        #subscribe to robot position and real lidar data
         rospy.Subscriber('/odom', Odometry, self.callbackOdom)
         rospy.Subscriber('/scan', LaserScan, self.callbackScan)
 
@@ -40,29 +44,27 @@ class MazeRobot(object):
             data: LaserScan data
         """
         self.projector.scan = data.ranges
-        # self.performInstruction()
 
     def callbackOdom(self, data):
+        """ updates on new odom data
+            data: Odometry data
+        """
         self.projector.odom = data.pose
         self.odom = self.convert_pose_to_xy_and_theta(data.pose)
-        if not self.prevOdom:
-            self.prevOdom = self.odom
+        if not self.prevOdom: #first reading
+            self.prevOdom = self.odom #no change
 
     def performInstruction(self):
         """ acts as a run loop to perform instructions
 
         """
-        if self.currentI >= len(self.solver.instructions):
-            print "here!", self.currentI, len(self.solver.instructions)
+        if not self.odom:
             return
 
         c = .5
         diffPos, diffAng = self.calcDifference(self.odom, self.prevOdom)
-        # diffAng = self.turnToAngle(instruction[0]) - self.differenceAng(self.odom, self.prevOdom)
-        # diffAng = instruction[0] - self.differenceAng(self.odom, self.prevOdom)
-        # diffPos = distance - self.differencePos(self.odom, self.prevOdom)
 
-        if abs(diffAng) < .05 or abs(diffAng) > 2*math.pi - .5:
+        if abs(diffAng) < .05:
             self.turn = False
         
         if abs(diffPos) < .05:
@@ -72,7 +74,7 @@ class MazeRobot(object):
             self.prevOdom = self.odom
 
             currentNode = self.solver.path[self.currentI]
-            # neighbors = self.solver.getNeighbors(currentNode)
+            neighbors = self.solver.getNeighbors(currentNode)
 
             # get projected maze
             self.laserScan.ranges = self.projector.projected
@@ -92,7 +94,7 @@ class MazeRobot(object):
             returns tuple of form (difference in position, difference in orientation)
         """
         instruction = self.solver.instructions[self.currentI]
-        distance = 1
+        distance = .3
 
         if current and previous:
             diffPos = distance - math.sqrt((current[0] - previous[0])**2 + (current[1] - previous[1])**2)
@@ -118,20 +120,19 @@ class MazeRobot(object):
 
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
-            if self.odom:
-                if self.currentI < len(self.solver.instructions):
-                    self.performInstruction()
-                    self.pubScan.publish(self.laserScan)
-                    self.pubVel.publish(self.twist)
-                    r.sleep()
+            if self.currentI < len(self.solver.instructions):
+                self.performInstruction()
+                self.pubScan.publish(self.laserScan)
+                self.pubVel.publish(self.twist)
+                r.sleep()
 
-                else:
-                    self.twist.linear.x = 0
-                    self.twist.angular.z = 0
-                    print "done traversing the maze"
-                    self.pubVel.publish(self.twist)
-                    break 
-                    
+            else:
+                self.twist.linear.x = 0
+                self.twist.angular.z = 0
+                print "done traversing the maze"
+                self.pubVel.publish(self.twist)
+                break 
+                
 
 
 if __name__ == '__main__':
