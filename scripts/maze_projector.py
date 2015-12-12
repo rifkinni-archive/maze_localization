@@ -82,8 +82,6 @@ class MazeProjector(object):
                     c = -1.0 if i <= 270 else 1.0
                     distance = wallDistance / math.cos(i*math.pi / 180)*c
                     self.projected[i] = 0 if distance > maxDistance else distance
-                    
-        wall = [None, None, None, None] 
 
     def detectHuman(self):
         """ look at the robot's scan and detect where the centroid of the human is """

@@ -20,6 +20,7 @@ class MazeRobot(object):
 
         self.odom = None
         self.prevOdom = None
+        self.projected = [0]*361
 
         self.projector = MazeProjector()
         self.solver = MazeSolver()
@@ -28,6 +29,7 @@ class MazeRobot(object):
         self.twist = Twist()
         self.laserScan = LaserScan()
         self.turn = True #turning or moving straight
+
 
 
         #publish robot commands and fake lidar data
@@ -45,6 +47,7 @@ class MazeRobot(object):
         """
         self.projector.scan = data.ranges
 
+
     def callbackOdom(self, data):
         """ updates on new odom data
             data: Odometry data
@@ -58,13 +61,15 @@ class MazeRobot(object):
         """ acts as a run loop to perform instructions
 
         """
+
         if not self.odom:
             return
 
+        instruction = self.solver.instructions[self.currentI]
         c = .5
-        diffPos, diffAng = self.calcDifference(self.odom, self.prevOdom)
+        diffPos, diffAng = self.calcDifference(self.odom, self.prevOdom, instruction)
 
-        if abs(diffAng) < .05:
+        if abs(diffAng)%(2*math.pi) < .05:
             self.turn = False
         
         if abs(diffPos) < .05:
@@ -73,12 +78,13 @@ class MazeRobot(object):
             self.turn = True
             self.prevOdom = self.odom
 
-            currentNode = self.solver.path[self.currentI]
-            neighbors = self.solver.getNeighbors(currentNode)
+            wall = self.getWalls(instruction[1])
+            # currentNode = self.solver.path[self.currentI]
+            # neighbors = self.solver.getNeighbors(currentNode)
 
             # get projected maze
-            self.laserScan.ranges = self.projector.projected
-        
+            self.laserScan.ranges = tuple(self.projectMaze(wall))
+
         if self.turn:
             self.twist.angular.z = c * diffAng
             self.twist.linear.x = 0
@@ -87,18 +93,25 @@ class MazeRobot(object):
             self.twist.angular.z = 0
 
 
-    def calcDifference(self, current, previous):
+    def calcDifference(self, current, previous, instruction):
         """ calculate the difference in position and orientation between current and previous odometry
             current: current odometry
             previous: previous odometry
             returns tuple of form (difference in position, difference in orientation)
         """
-        instruction = self.solver.instructions[self.currentI]
         distance = .3
+
+        currAng = current[2]%(2*math.pi)
+        prevAng = previous[2]%(2*math.pi)
 
         if current and previous:
             diffPos = distance - math.sqrt((current[0] - previous[0])**2 + (current[1] - previous[1])**2)
             diffAng = instruction[0] - (current[2] - previous[2])
+            # if self.turn:
+            #     print "angle difference", diffAng
+            #     print "odom current", currAng, "odom prev", prevAng
+            #     print "odom difference", current[2] - previous[2]
+            #     print "-----"
             return diffPos, diffAng
         else:
             return 0, 0
@@ -114,7 +127,7 @@ class MazeRobot(object):
         for nextNode in neighbors:
             nextOrient = self.solver.getNextOrientation(currentNode, nextNode)
             walls[nextOrient] = 1
-        return walls[direction:] + walls[:direction]
+        return walls[orientation:] + walls[:orientation]
 
 
     def convert_pose_to_xy_and_theta(self, pose):
@@ -136,6 +149,7 @@ class MazeRobot(object):
             if self.currentI < len(self.solver.instructions):
                 self.performInstruction()
                 self.pubScan.publish(self.laserScan)
+                print "laser scan published"
                 self.pubVel.publish(self.twist)
                 r.sleep()
 
@@ -184,6 +198,7 @@ class MazeRobot(object):
                     c = -1.0 if i <= 270 else 1.0
                     distance = wallDistance / math.cos(i*math.pi / 180)*c
                     self.projected[i] = 0 if distance > maxDistance else distance
+        return self.projected
 
 
 if __name__ == '__main__':

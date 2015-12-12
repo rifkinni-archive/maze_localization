@@ -11,7 +11,7 @@ class MazeSolver():
         a visualization of the solved maze
   """
   def __init__(self):
-    self.m = Maze(3)
+    self.m = Maze(22)
 
     start = (0, 0)
     goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
@@ -43,7 +43,7 @@ class MazeSolver():
 
       nextOrient = self.getNextOrientation(currentNode, nextNode) 
       turn = self.getTurn(orientation, nextOrient)
-      instructions.append(turn[0], nextOrient, turn[1])
+      instructions.append((turn[0], nextOrient, turn[1]))
 
     return instructions
 
