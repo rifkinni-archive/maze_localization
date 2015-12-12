@@ -102,7 +102,20 @@ class MazeRobot(object):
             return diffPos, diffAng
         else:
             return 0, 0
-        
+    
+    def getWalls(self, orientation):
+        """ get a representation of maze walls the robot can understand
+            currentNode: coordinates of current node
+            orientation: current orientation of the robot
+        """
+        currentNode = self.solver.path[self.currentI]
+        neighbors = self.solver.getNeighbors(currentNode)
+        walls = [None]*4
+        for nextNode in neighbors:
+            nextOrient = self.solver.getNextOrientation(currentNode, nextNode)
+            walls[nextOrient] = 1
+        return walls[direction:] + walls[:direction]
+
 
     def convert_pose_to_xy_and_theta(self, pose):
         """ pose: geometry_msgs.Pose object
@@ -133,6 +146,44 @@ class MazeRobot(object):
                 self.pubVel.publish(self.twist)
                 break 
                 
+
+    def projectMaze(self, wall):
+        """ set projected to the virtual maze """
+        wallDistance = 1
+        maxDistance = 5
+
+        for i in range(1, 360):
+            if i <= 45 or i > 315:
+                if not wall[0]:
+                    self.projected[i] = wallDistance / math.cos(i*math.pi / 180)
+                else:
+                    c = 1.0 if i <= 45 else -1.0
+                    distance = wallDistance / math.sin(i*math.pi / 180) *c
+                    self.projected[i] = 0 if distance > maxDistance else distance
+
+            elif i <= 135:
+                if not wall[1]:
+                    self.projected[i] = wallDistance / math.sin(i*math.pi / 180)
+                else:
+                    c = 1.0 if i <= 90 else -1.0
+                    distance = wallDistance /  math.cos(i*math.pi / 180) * c
+                    self.projected[i] = 0 if distance > maxDistance else distance
+
+            elif i <= 225:
+                if not wall[2]:
+                    self.projected[i] = wallDistance / -math.cos(i*math.pi / 180)
+                else:
+                    c = 1.0 if i <= 180 else -1.0
+                    distance = wallDistance / math.sin(i*math.pi / 180) *c
+                    self.projected[i] = 0 if distance > maxDistance else distance
+
+            elif i <= 315:
+                if not wall[3]:
+                    self.projected[i] = wallDistance / -math.sin( i*math.pi / 180)
+                else:
+                    c = -1.0 if i <= 270 else 1.0
+                    distance = wallDistance / math.cos(i*math.pi / 180)*c
+                    self.projected[i] = 0 if distance > maxDistance else distance
 
 
 if __name__ == '__main__':
