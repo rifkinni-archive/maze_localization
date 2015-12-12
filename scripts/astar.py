@@ -21,7 +21,7 @@ class Astar():
 		return abs(node[0]-self.goal[0]) + abs(node[1]-self.goal[1])
 	
 	def a_star_search(self):
-		""" traverse the maze and check nodes by priority
+		""" traverse the maze and check nodes by priority until goal is reached
 		"""
 		#set up starting node
 		self.addToQueue(self.start, 0) #starting node with 0 priority
@@ -33,7 +33,6 @@ class Astar():
 			current = self.frontier.pop()[0] #coordinate with highest priority
 
 			if current == self.goal: #if we found goal
-				print "goal!!"
 				print "cost", cost_so_far[current]
 				return #done
 
@@ -74,31 +73,8 @@ class Astar():
 		self.frontier.append((node, priority)) #add to list
 		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
 
-	def getPath(self):
-		path = []
-
-		node = self.goal #work backwards
-		last = self.came_from[node] #node we came from
-		
-		while last: #not at starting node
-			path.append(node)
-			node = last #update current node
-			last = self.came_from[last]
-		return [path[len(path)-i] for i in range(1, len(path) + 1)]
-
-	def printPath(self):
-		"""	plot the shortest path from a to b in the maze
-		"""
-		node = self.goal #work backwards
-		last = self.came_from[node] #node we came from
-		while last: #not at starting node
-			plt.plot([last[0], node[0]], [last[1], node[1]], 'red') #plot path
-			node = last #update current node
-			last = self.came_from[last]
-		plt.show()
 
 
 
 
 
- 
