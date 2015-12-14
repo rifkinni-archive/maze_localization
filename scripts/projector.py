@@ -36,7 +36,7 @@ class Projector(object):
                     self.projected[i] = 0 if distance > self.maxDistance else distance
 
             elif i <= 135:
-                if not wall[1]:
+                if not wall[3]:
                     self.projected[i] = self.wallDistance / math.sin(i*math.pi / 180)
                 else:
                     c = 1.0 if i <= 90 else -1.0
@@ -52,7 +52,7 @@ class Projector(object):
                     self.projected[i] = 0 if distance > self.maxDistance else distance
 
             elif i <= 315:
-                if not wall[3]:
+                if not wall[1]:
                     self.projected[i] = self.wallDistance / -math.sin( i*math.pi / 180)
                 else:
                     c = -1.0 if i <= 270 else 1.0
