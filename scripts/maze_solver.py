@@ -11,7 +11,7 @@ class MazeSolver():
         a visualization of the solved maze
   """
   def __init__(self):
-    self.m = Maze(22)
+    self.m = Maze(5)
 
     start = (0, 0)
     goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze

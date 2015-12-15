@@ -47,7 +47,7 @@ class MazeNavigator(object):
         """
         if not self.scan:
             self.laserScan = data
-        self.laserScan.header = data.header
+        # self.laserScan.header = data.header
         self.scan = data.ranges
 
 
@@ -78,15 +78,17 @@ class MazeNavigator(object):
             self.currentI += 1 #increment instruction
             self.turn = True 
             self.prevOdom = self.odom #update odometry
-            wall = self.getWalls()#instruction[1])
+            wall = self.getWalls(instruction[1])
             self.projected = self.projectMaze(wall) #update laser scan 
-            # self.laserScan.ranges = tuple(self.projectMaze(wall, instruction[1])) #update laser scan 
-
+            self.laserScan.ranges = tuple(self.projectMaze(wall)) #update laser scan 
+            
+            self.laserScan.header.stamp = rospy.Time.now()
+            self.laserScan.header.frame_id = "base_laser_link"
 
         if self.turn: #set angular velocity
             self.twist.angular.z = c * diffAng
             self.twist.linear.x = 0
-            self.rotateWalls(self.odom[2])
+            # self.rotateWalls(self.odom[2])
 
         else: #set linear velocity
             self.twist.linear.x = c *diffPos
@@ -120,7 +122,7 @@ class MazeNavigator(object):
         """ calculate the difference in position and orientation between current and previous odometry
             returns tuple of form (difference in position, difference in orientation)
         """
-        distance = .3 #distance between nodes
+        distance = .5 #distance between nodes
         # currAng = current[2]%(2*math.pi)
         # prevAng = previous[2]%(2*math.pi)
         diffPos = distance - math.sqrt((self.odom[0] - self.prevOdom[0])**2 + (self.odom[1] - self.prevOdom[1])**2)
@@ -132,7 +134,7 @@ class MazeNavigator(object):
         #     print "-----"
         return diffPos, diffAng
 
-    def getWalls(self):#, orientation):
+    def getWalls(self, orientation):
         """ get a representation of maze walls the robot can understand
             currentNode: coordinates of current node
             orientation: current orientation of the robot
@@ -146,7 +148,7 @@ class MazeNavigator(object):
         for nextNode in neighbors:
             nextOrient = self.solver.getNextOrientation(currentNode, nextNode)
             walls[nextOrient] = 1 #update list with True where paths exist
-        return walls #absolute position
+        return walls[orientation:] + walls[:orientation] #rotated depending on robot's position
 
 
     def projectMaze(self, wall):
@@ -154,7 +156,7 @@ class MazeNavigator(object):
             wall: output from getWalls
             returns a list of length 359 with maze scan data to be published
         """
-        wallDistance = .1
+        wallDistance = .2
         maxDistance = .3
         projected = [0]*361
 
@@ -197,7 +199,7 @@ class MazeNavigator(object):
             orientation = int(orientation * 180/math.pi)
             rotatedProjection = self.projected[orientation:] + self.projected[:orientation]
             self.laserScan.ranges = tuple(rotatedProjection)
-            self.pubScan.publish(self.laserScan) #publish maze scan
+            # self.pubScan.publish(self.laserScan) #publish maze scan
 
 
 
@@ -219,7 +221,7 @@ class MazeNavigator(object):
         while not rospy.is_shutdown():
             if self.currentI < len(self.solver.instructions): #still have instructions to perform
                 self.performInstruction()
-                # self.pubScan.publish(self.laserScan) #publish maze scan
+                self.pubScan.publish(self.laserScan) #publish maze scan
                 self.pubVel.publish(self.twist)
                 r.sleep()
 
@@ -229,11 +231,7 @@ class MazeNavigator(object):
                 print "done traversing the maze"
                 self.pubVel.publish(self.twist)
                 break #exit
-                
-
-
-
-
+            
 if __name__ == '__main__':
     node = MazeNavigator()
     node.run()
