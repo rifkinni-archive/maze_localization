@@ -157,7 +157,7 @@ class MazeNavigator(object):
             returns a list of length 359 with maze scan data to be published
         """
         wallDistance = .2
-        maxDistance = .3
+        maxDistance = .4
         projected = [0]*361
 
         for i in range(1, 360):
