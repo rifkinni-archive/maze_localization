@@ -1,80 +1,103 @@
-import matplotlib.pyplot as plt
-from matplotlib import patches
-import numpy as np
+from matplotlib import patches, pyplot as plt
+import math
 import random
-from maze import Graph
+from maze import Maze
 from astar import Astar
 
 class MazeSolver():
+  """ A class that provides: 
+        a path through a maze
+        robot instructions to navigate it
+        a visualization of the solved maze
+  """
   def __init__(self):
-    self.g = Graph(10)
+    self.m = Maze(5)
 
     start = (0, 0)
-    goal = (random.randint(0, self.g.size - 1), random.randint(0, self.g.size - 1))
+    goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
 
-    self.a = Astar(self.g.graph,start, goal)
+    self.a = Astar(self.m.graph,start, goal) #solve maze using astar
     self.path = self.getPath(goal)
-    self.visualize(start, goal)
+    self.instructions = self.getInstructions()
+    self.visualize(start, goal) #graph the maze using matplotlib
 
 
   def getInstructions(self):
-    inst = []
-    orientation = 0
-    tup = [0, 0]
+    """ get turn instructions for the robot to execute 
+        note: the robot will always move forward one unit, so no custom instructions are needed
+        returns a list of tuples of form: 
+          [(turn in radians, 
+          orientation of the robot after the turn, 
+          human readable instruction e.g. "right"), ...]
+    """
+    instructions = []
     for i in range(1, len(self.path)):
-      tup = [0, 0]
 
-      if i == 1:
-        orientation = 0
+      if i == 1: #first instruction
+        orientation = 0 #assume robot facing 0 degrees
       else:
-        orientation = inst[i-2][1]
+        orientation = instructions[i-2][1] #last robot orientation
 
-      _next = self.path[i]
-      current = self.path[i-1]
-      # x is equal
-      if _next[0] == current[0]:
-        orient = 0 if _next[1] > current[1] else 2
-        tup[0] = self.getTurn(orientation, orient)
-        tup[1] = orient
+      nextNode = self.path[i] 
+      currentNode = self.path[i-1]
 
-      else:
-        orient = 1 if _next[0] > current[0] else 3
-        tup[0] = self.getTurn(orientation, orient)
-        tup[1] = orient
-        
-      inst.append(tup)
+      nextOrient = self.getNextOrientation(currentNode, nextNode) 
+      turn = self.getTurn(orientation, nextOrient)
+      instructions.append((turn[0], nextOrient, turn[1]))
 
-    return inst
+    return instructions
 
-  def getTurn(self, current, _next):
-    """ get the instruction depending on the orientation """
-    if abs(_next - current) == 2:
-      return "full"
-    if _next == current:
-      return "no turn"
-    elif current == 1  or current == 2:
-      if _next - current > 0:
-        return "right"
-      else:
-        return "left"
-    elif current == 0:
-      if _next == 1:
-        return "right"
-      else:
-        return "left"
-    elif current == 3:
-      if _next == 0:
-        return "right"
-      else:
-        return "left"
+  def getNextOrientation(self, currentNode, nextNode):
+    """ get orientation of robot after the turn
+        currentNode: coordinates of current node
+        nextNode: coordinates of next node
+        returns one of [0, 1, 2, 3]
+    """
+    if nextNode[0] == currentNode[0]:  # x coordinates are equal
+        nextOrient = 0 if nextNode[1] > currentNode[1] else 2 #forward or backwards
+
+    else: #y coordinates are equal
+      nextOrient = 1 if nextNode[0] > currentNode[0] else 3 #left or right
+
+    return nextOrient
+
+  def getTurn(self, currentOrient, nextOrient):
+    """ get the turn angle depending on the change in orientation
+        current: current orientation, one of [0, 1, 2, 3]
+        _next: nex orientation, one of [0, 1, 2, 3]
+        return tuple of form:
+          (turn in radians, 
+          human readable instruction e.g. "right")
+    """
+    case = (nextOrient - currentOrient)%4 #difference in orientations
+
+    if case == 0: #same orientation as before
+      return 0, "no turn"
+
+    elif case == 1: #right turn
+      return -math.pi/2, "right"
+
+    elif case == 2: #180 turn
+      return math.pi, "full"
+    
+    elif case == 3: #left turn
+      return math.pi/2, "left"    
 
 
   def getNeighbors(self, coord):
+    """ gets node neighbors (nodes we are connected to by graph edges)
+        coord: coordinates of node 
+        returns list of neighbors
+    """
     x = coord[0]
     y = coord[1]
-    return self.g.graph[x][y].neighbors
+    return self.m.graph[x][y].neighbors
 
   def getPath(self, goal):
+    """ get nodes in order of traversal
+        goal: end coordinate of the maze
+        returns list of node coordinates
+    """
     path = []
 
     node = goal #work backwards
@@ -85,15 +108,17 @@ class MazeSolver():
       node = last #update current node
       last = self.a.came_from[last]
     path.append(node) #add the last node
-    return list(reversed(path))
+    return list(reversed(path)) #reverse since we started from goal
 
 
   def visualize(self, start, goal):
-    """Plot the maze, start, end, and path using matplotlib"""
+    """ Plot the maze, starting point, ending point, and path using matplotlib
+        Shows a plot
+    """
     #plot maze
-    for i in range(self.g.size):
-      for j in range(self.g.size):
-        for n in self.g.graph[i][j].neighbors:
+    for i in range(self.m.size):
+      for j in range(self.m.size):
+        for n in self.m.graph[i][j].neighbors:
           pd = 0.35
           #vertical up from (i/n[0],j)
           if i==n[0] and j < n[1]:
@@ -110,8 +135,8 @@ class MazeSolver():
           plt.gca().add_patch(rectangle)
 
     #plot start and end dots
-    radius = float(self.g.size)/40
-    plt.axis([-1, self.g.size, -1, self.g.size])
+    radius = float(self.m.size)/40
+    plt.axis([-1, self.m.size, -1, self.m.size])
     begin=plt.Circle(start, radius, color='r')
     end=plt.Circle(goal, radius,color='g')
     plt.gcf().gca().add_artist(begin)
@@ -126,4 +151,41 @@ class MazeSolver():
     plt.show()
 
 if __name__ == '__main__':
-  x = MazeSolver()
+  def tester(current, _next):
+    """ This was an original brute force function for determining orientation
+        It is used to compare results and test with a much cleaner and more compact function
+    """
+    if current == _next:
+      return 0, _next, "no turn"
+
+    elif abs(current - _next) == 2:
+      return math.pi, _next, "full"
+
+    elif current == 1  or current == 2:
+      if _next - current > 0:
+        return -math.pi/2, _next, "right"
+      else:
+        return math.pi/2, _next, "left"
+    elif current == 0:
+      if _next == 1:
+        return -math.pi/2, _next, "right"
+      else:
+        return math.pi/2, _next, "left"
+    elif current == 3:
+      if _next == 0:
+        return -math.pi/2, _next, "right"
+      else:
+        return math.pi/2, _next, "left"
+
+
+  solver = MazeSolver()
+
+  #unit testing
+  for i in [0, 1, 2, 3]:
+    for j in [0, 1, 2, 3]:
+      _, _, a = solver.getTurn(i, j)
+      _, _, b = tester(i, j)
+      print a, b
+      assert a == b
+
+
