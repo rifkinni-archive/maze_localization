@@ -11,7 +11,7 @@ class MazeSolver():
         a visualization of the solved maze
   """
   def __init__(self):
-    self.m = Maze(3)
+    self.m = Maze(5)
 
     start = (0, 0)
     goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
@@ -41,40 +41,47 @@ class MazeSolver():
       nextNode = self.path[i] 
       currentNode = self.path[i-1]
 
-     
-      if nextNode[0] == currentNode[0]:  # x coordinates are equal
-        nextOrient = 0 if nextNode[1] > currentNode[1] else 2 #forward or backwards
-        instructions.append(self.getTurn(orientation, nextOrient))
-
-      else: #y coordinates are equal
-        nextOrient = 1 if nextNode[0] > currentNode[0] else 3 #left or right
-        instructions.append(self.getTurn(orientation, nextOrient))
+      nextOrient = self.getNextOrientation(currentNode, nextNode) 
+      turn = self.getTurn(orientation, nextOrient)
+      instructions.append((turn[0], nextOrient, turn[1]))
 
     return instructions
 
-  def getTurn(self, current, _next):
+  def getNextOrientation(self, currentNode, nextNode):
+    """ get orientation of robot after the turn
+        currentNode: coordinates of current node
+        nextNode: coordinates of next node
+        returns one of [0, 1, 2, 3]
+    """
+    if nextNode[0] == currentNode[0]:  # x coordinates are equal
+        nextOrient = 0 if nextNode[1] > currentNode[1] else 2 #forward or backwards
+
+    else: #y coordinates are equal
+      nextOrient = 1 if nextNode[0] > currentNode[0] else 3 #left or right
+
+    return nextOrient
+
+  def getTurn(self, currentOrient, nextOrient):
     """ get the turn angle depending on the change in orientation
         current: current orientation, one of [0, 1, 2, 3]
         _next: nex orientation, one of [0, 1, 2, 3]
         return tuple of form:
           (turn in radians, 
-          orientation of the robot after the turn, 
           human readable instruction e.g. "right")
     """
-    case = (_next - current)%4 #difference in orientations
+    case = (nextOrient - currentOrient)%4 #difference in orientations
 
     if case == 0: #same orientation as before
-      return 0, _next,  "no turn"
+      return 0, "no turn"
 
     elif case == 1: #right turn
-      return -math.pi/2, _next, "right"
+      return -math.pi/2, "right"
 
     elif case == 2: #180 turn
-      return math.pi, _next, "full"
+      return math.pi, "full"
     
     elif case == 3: #left turn
-      return math.pi/2, _next, "left"    
-
+      return math.pi/2, "left"    
 
 
   def getNeighbors(self, coord):
