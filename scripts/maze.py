@@ -159,7 +159,7 @@ class Maze(object):
     plt.pause(0.1)
 
 if __name__ == "__main__":
-  m = Maze(10, viz=True)
+  m = Maze(5, viz=True)
 
                                        
 
