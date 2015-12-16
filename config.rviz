@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /RobotModel1
         - /LaserScan1
       Splitter Ratio: 0.5
     Tree Height: 595
@@ -130,7 +131,11 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
+<<<<<<< HEAD
       Max Intensity: 27
+=======
+      Max Intensity: 32
+>>>>>>> master
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: LaserScan
@@ -177,7 +182,11 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
+<<<<<<< HEAD
       Distance: 12.8519
+=======
+      Distance: 10.5839
+>>>>>>> master
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -189,10 +198,17 @@ Visualization Manager:
         Z: 0
       Name: Current View
       Near Clip Distance: 0.01
+<<<<<<< HEAD
       Pitch: 0.650398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
       Yaw: 4.69358
+=======
+      Pitch: 0.774797
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 4.83357
+>>>>>>> master
     Saved: ~
 Window Geometry:
   Displays:

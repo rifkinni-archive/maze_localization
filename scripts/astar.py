@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 class Astar():
-	def __init__(self, graph, start, goal):
+	def __init__(self, graph, start, goal, viz=False):
 		"""	Initialize maze search
 				graph: generated from maze.py 
 				start: tuple starting coordinate
@@ -10,9 +10,12 @@ class Astar():
 		self.graph = graph 
 		self.start = start 
 		self.goal = goal 
+		self.viz = viz
 		self.frontier = [] #priority queue
 		self.came_from = {} #contains previous node
 		self.a_star_search()
+
+
 
 	def heuristic(self, node):
 		""" return calculated manhattan distance from node to goal
@@ -28,9 +31,14 @@ class Astar():
 		cost_so_far = {}
 		self.came_from[self.start] = None #starting node has no previous node
 		cost_so_far[self.start] = 0 #no cost so far
-
+		last = self.start
 		while len(self.frontier): #while there are nodes to check
 			current = self.frontier.pop()[0] #coordinate with highest priority
+			if self.viz:
+				self.visualize(current, cost_so_far)
+				# plt.plot(current[0], current[1], 'black')
+				# plt.gcf().gca().add_artist(checked)
+
 
 			if current == self.goal: #if we found goal
 				print "cost", cost_so_far[current]
@@ -46,6 +54,8 @@ class Astar():
 					priority = -(newCost + self.heuristic(neighbor)) #set priority
 					self.came_from[neighbor] = current #add/update previous node
 					self.addToQueue(neighbor, priority) #add to Queue
+
+			
 
 	def calcWeights(self, node1, node2):
 		"""	return calculated weight moving from node1 to node2
@@ -73,8 +83,12 @@ class Astar():
 		self.frontier.append((node, priority)) #add to list
 		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
 
-
-
-
-
+	def visualize(self, current, cost_so_far):
+		plt.gca().text(current[0], current[1], str(cost_so_far[current]), fontsize=14, color='red')
+		last = self.came_from[current]
+		if last:
+			x1, x2, y1, y2 = (last[0], current[0], last[1], current[1])
+			plt.plot([x1, x2], [y1, y2], 'black')
+			plt.show(False)
+			plt.pause(.01)
 
