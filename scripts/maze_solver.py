@@ -3,6 +3,7 @@ import math
 import random
 from maze import Maze
 from astar import Astar
+import random
 
 class MazeSolver():
   """ A class that provides: 
@@ -11,15 +12,15 @@ class MazeSolver():
         a visualization of the solved maze
   """
   def __init__(self):
-    self.m = Maze(5)
+    self.m = Maze(10)
 
-    start = (0, 0)
-    goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
+    self.start = (0, 0)
+    self.goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
 
-    self.a = Astar(self.m.graph,start, goal) #solve maze using astar
-    self.path = self.getPath(goal)
+    self.a = Astar(self.m.graph,self.start, self.goal) #solve maze using astar
+    self.path = self.getPath()
     self.instructions = self.getInstructions()
-    self.visualize(start, goal) #graph the maze using matplotlib
+    # self.visualize() #graph the maze using matplotlib
 
 
   def getInstructions(self):
@@ -93,14 +94,14 @@ class MazeSolver():
     y = coord[1]
     return self.m.graph[x][y].neighbors
 
-  def getPath(self, goal):
+  def getPath(self):
     """ get nodes in order of traversal
         goal: end coordinate of the maze
         returns list of node coordinates
     """
     path = []
 
-    node = goal #work backwards
+    node = self.goal #work backwards
     last = self.a.came_from[node] #node we came from
     
     while last: #not at starting node
@@ -111,10 +112,11 @@ class MazeSolver():
     return list(reversed(path)) #reverse since we started from goal
 
 
-  def visualize(self, start, goal):
+  def visualize(self, current):
     """ Plot the maze, starting point, ending point, and path using matplotlib
         Shows a plot
     """
+    plt.clf()
     #plot maze
     for i in range(self.m.size):
       for j in range(self.m.size):
@@ -137,18 +139,32 @@ class MazeSolver():
     #plot start and end dots
     radius = float(self.m.size)/40
     plt.axis([-1, self.m.size, -1, self.m.size])
-    begin=plt.Circle(start, radius, color='r')
-    end=plt.Circle(goal, radius,color='g')
+    begin=plt.Circle(self.start, radius, color='r')
+    end=plt.Circle(self.goal, radius,color='g')
+    location=plt.Circle(current, radius, color='k')
     plt.gcf().gca().add_artist(begin)
     plt.gcf().gca().add_artist(end)
+    plt.gcf().gca().add_artist(location)
     plt.gca().set_axis_bgcolor('black')
 
     #plot path
     for i in range(len(self.path) -1):
       x1, x2, y1, y2 = (self.path[i][0], self.path[i + 1][0], self.path[i][1], self.path[i + 1][1])
       plt.plot([x1, x2], [y1, y2], 'red')
+    plt.show(False)
+    plt.pause(1)
 
-    plt.show()
+
+  def animate(self, current):
+    plt.clf()
+    self.visualize(self.start, self.goal)
+    radius = float(self.m.size)/40
+    location=plt.Circle(current, radius, color='k')
+    plt.gcf().gca().add_artist(location)
+    plt.show(False)
+    plt.pause(1)
+
+
 
 if __name__ == '__main__':
   def tester(current, _next):
@@ -163,29 +179,30 @@ if __name__ == '__main__':
 
     elif current == 1  or current == 2:
       if _next - current > 0:
-        return -math.pi/2, _next, "right"
+        return -math.pi/2, "right"
       else:
-        return math.pi/2, _next, "left"
+        return math.pi/2, "left"
     elif current == 0:
       if _next == 1:
-        return -math.pi/2, _next, "right"
+        return -math.pi/2, "right"
       else:
-        return math.pi/2, _next, "left"
+        return math.pi/2, "left"
     elif current == 3:
       if _next == 0:
-        return -math.pi/2, _next, "right"
+        return -math.pi/2, "right"
       else:
-        return math.pi/2, _next, "left"
+        return math.pi/2, "left"
 
 
   solver = MazeSolver()
+  for node in solver.path:
+    solver.visualize(node)
 
   #unit testing
   for i in [0, 1, 2, 3]:
     for j in [0, 1, 2, 3]:
-      _, _, a = solver.getTurn(i, j)
-      _, _, b = tester(i, j)
-      print a, b
+      _, a = solver.getTurn(i, j)
+      _, b = tester(i, j)
       assert a == b
 
 
