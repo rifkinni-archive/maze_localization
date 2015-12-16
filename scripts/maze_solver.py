@@ -11,15 +11,15 @@ class MazeSolver():
         robot instructions to navigate it
         a visualization of the solved maze
   """
-  def __init__(self):
+  def __init__(self, viz=False):
     self.m = Maze(10)
 
     self.start = (0, 0)
     self.goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
-    self.visualizeAstar()
-    self.a = Astar(self.m.graph,self.start, self.goal, viz=True) #solve maze using astar
+    if viz: 
+      self.visualizeAstar()
+    self.a = Astar(self.m.graph,self.start, self.goal, viz=viz) #solve maze using astar
     self.path = self.getPath()
-    # self.visualizeAstarPath()
     self.instructions = self.getInstructions()
 
 
@@ -141,13 +141,6 @@ class MazeSolver():
     plt.show(False)
     plt.pause(0.01)
 
-  # def visualizeAstarPath(self):
-  #   self.visualizeAstar()
-  #   for i in range(len(self.path) -1):
-  #     x1, x2, y1, y2 = (self.path[i][0], self.path[i + 1][0], self.path[i][1], self.path[i + 1][1])
-  #     plt.plot([x1, x2], [y1, y2], 'red')
-  #     plt.show(False)
-  #     plt.pause(0.01)
 
   def visualize(self, current):
     """ Plot the maze, starting point, ending point, and path using matplotlib
@@ -196,7 +189,7 @@ class MazeSolver():
 
 if __name__ == '__main__':
 
-  solver = MazeSolver()
+  solver = MazeSolver(True)
   for node in solver.path:
     solver.visualize(node)
 
