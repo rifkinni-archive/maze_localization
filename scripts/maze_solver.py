@@ -4,6 +4,7 @@ import random
 from maze import Maze
 from astar import Astar
 import random
+import time
 
 class MazeSolver():
   """ A class that provides: 
@@ -15,6 +16,7 @@ class MazeSolver():
     self.m = Maze(10)
 
     self.start = (0, 0)
+    self.wait = True
     self.goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
     if viz: 
       self.visualizeAstar()
@@ -138,8 +140,11 @@ class MazeSolver():
     plt.gcf().gca().add_artist(begin)
     plt.gcf().gca().add_artist(end)
     plt.gca().set_axis_bgcolor('black')
+    
     plt.show(False)
     plt.pause(0.01)
+    if self.wait:
+      time.sleep(3);
 
 
   def visualize(self, current):

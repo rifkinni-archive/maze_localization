@@ -41,9 +41,9 @@ class MazeNavigator(object):
         self.foundRealHuman = False
         self.humanThreshhold = .7  # distance that it will detect a human 
 
-        self.maxDistance = .5
+        self.maxDistance = .6
         self.wallDistance = .3
-        self.nodeDistance = .5 # distance between nodes
+        self.nodeDistance = .8 # distance between nodes
         
         #publish robot commands and fake lidar data
         self.pubScan = rospy.Publisher('/maze_scan', LaserScan, queue_size=10)
@@ -111,7 +111,12 @@ class MazeNavigator(object):
         """ updates visualization and publishes new scan data when a new node is reached
             instruction: new instruction
         """
-        self.detectHuman()    
+        self.detectHuman()
+
+        print "human", self.foundHuman
+        print "real human", self.foundRealHuman
+
+        self.foundRealHuman = True
 
         if self.foundRealHuman:
             self.currentI += 1 #increment instruction
