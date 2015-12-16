@@ -30,9 +30,9 @@ class Maze(object):
     self.addEdges()
 
   def getUnvisitedNodes(self, i, j):
-    """returns choices of neighboring nodes 
-    that have not been visited by recursiveBacktracking 
-    in a random order
+    """ returns choices of neighboring nodes 
+        that have not been visited by recursiveBacktracking 
+        in a random order
     """
     adjacentInd = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)] #adjacent node indices
     choices = []
@@ -45,14 +45,14 @@ class Maze(object):
     return choices
 
   def getUnconnectedNeighbors(self, i, j):
-    """returns choices of neighboring nodes
-    that are not connected to node i, j for addEdges
-    in a random order
+    """ returns choices of neighboring nodes
+        that are not connected to node i, j for addEdges
+        in a random order
 
-    things to test:
-      returns array of length between 2 and 4
-      if length 2 it i, j is a corner (i or j has only 0 or self.size - 1)
-      if length 3, i, j is an edge (i or j has a 0 or a self.size -1)
+      things to test:
+        returns array of length between 2 and 4
+        if length 2 it i, j is a corner (i or j has only 0 or self.size - 1)
+        if length 3, i, j is an edge (i or j has a 0 or a self.size -1)
     """
     adjacentInd = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)] #adjacent node indices
     choices = []
@@ -71,9 +71,8 @@ class Maze(object):
         end product is a maze with exactly one path from a to b
 
       things to test:
-      every node has at least one neighbor
-      every node is a node object (not 0)
-
+        every node has at least one neighbor
+        every node is a node object (not 0)
     """
     i, j = indices
     choices = self.getUnvisitedNodes(i, j) 
@@ -84,6 +83,7 @@ class Maze(object):
     if choices: #we are not blocked in
       choice = choices[0] #first of a random list
       self.stack.append((i, j))
+
       self.recursiveBacktracking(choice)
       
     else: #we are blocked in
@@ -96,14 +96,13 @@ class Maze(object):
       #else we have hit every node in the maze
 
   def updateNeighbors(self, coord1, coord2):
-    """
-    coord1: first neighbor's coordinates
-    coord2: second neighbor's coordinates
-    Update neighbors list for nodes when edge is added
+    """ coord1: first neighbor's coordinates
+        coord2: second neighbor's coordinates
+        Update neighbors list for nodes when edge is added
 
-    things to test:
-      node1 is node2's neighbor
-      node2 is node1's neighbor
+      things to test:
+        node1 is node2's neighbor
+        node2 is node1's neighbor
     """
 
     node1 = self.graph[coord1[0]][coord1[1]]
@@ -123,6 +122,8 @@ class Maze(object):
       if available:
         self.updateNeighbors((x, y), available[0])
         counter +=1
+        if self.viz:
+          self.visualize()
       if counter >= self.size - 2: #add size - 2 edges
         break
 
@@ -150,6 +151,8 @@ class Maze(object):
             if j==n[1] and i > n[0]:
               rectangle = patches.Rectangle((n[0]-pd, j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
             plt.gca().add_patch(rectangle)
+
+
     plt.axis([-1, self.size, -1, self.size])
     plt.gca().set_axis_bgcolor('black')
     plt.show(False)
