@@ -9,7 +9,7 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry
 from maze_projector import MazeProjector
-from geometry_msgs.msg import Twist, Vector3
+from geometry_msgs.msg import Twist, Vector3, PointStamped, Point
 from maze_solver import MazeSolver
 from tf import TransformListener, TransformBroadcaster
 from tf.transformations import euler_from_quaternion
@@ -30,14 +30,28 @@ class MazeNavigator(object):
         self.listener = TransformListener()
         self.broadcaster = TransformBroadcaster()
 
+        self.counter = 0
+
         self.currentI = 0 #index to keep track of our instruction
         self.twist = Twist()
         self.laserScan = LaserScan()
         self.turn = True #turning or moving straight
 
+        self.dist_centroid = 0
+        self.angle_centroid = 0
+        self.point = None
+        self.foundHuman = False
+        self.foundRealHuman = False
+        self.humanThreshhold = .7  # distance that it will detect a human 
+
+        self.maxDistance = .6
+        self.wallDistance = .3
+        self.nodeDistance = .8 # distance between nodes
+        
         #publish robot commands and fake lidar data
         self.pubScan = rospy.Publisher('/maze_scan', LaserScan, queue_size=10)
-        self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10) 
+        self.pubVel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.pubToViz = rospy.Publisher('/centroid', PointStamped, queue_size=10)
 
         #subscribe to robot position and real lidar data
         rospy.Subscriber('/odom', Odometry, self.callbackOdom)
@@ -54,7 +68,6 @@ class MazeNavigator(object):
             self.laserScan = data
         self.scan = data.ranges
 
-
     def callbackOdom(self, data):
         """ updates on new odom data
             data: Odometry data
@@ -63,26 +76,70 @@ class MazeNavigator(object):
         if not self.prevOdom: #first reading
             self.prevOdom = self.odom #no change
 
+    def detectHuman(self):
+        """ look at the robot's scan and detect where the centroid of the human is """
+
+        # find a cluster of points within certain
+        objectdict = {}
+        sumx = 0
+        sumy = 0
+        for i in range(0, 360):
+            if self.scan[i] !=0 and self.scan[i] < self.humanThreshhold:
+                locX = self.scan[i]*math.cos(i*math.pi/180.0)
+                locY = self.scan[i]*math.sin(i*math.pi/180.0)
+                objectdict[i] = [locX, locY]
+                sumx += locX
+                sumy += locY
+        if len(objectdict) !=0:
+            centroid = [sumx/len(objectdict), sumy/len(objectdict)]
+            self.dist_centroid = math.sqrt(centroid[0]**2 + centroid[1]**2)
+            self.angle_centroid = math.atan2(centroid[1],centroid[0])
+            self.point = PointStamped(point=Point(x=-centroid[0], y=-centroid[1]), header=Header(stamp=rospy.Time.now(), frame_id='base_laser_link'))
+            self.foundHuman = True
+        else:
+            self.foundHuman = False
+        
+        if self.foundHuman and self.projected:
+            self.projectedDistance = self.projected[int(self.angle_centroid*180/math.pi)]
+
+            if self.projectedDistance == 0 or self.projectedDistance > self.dist_centroid:
+                self.foundRealHuman = True
+            else:
+                self.foundRealHuman = False
+
+        self.foundRealHuman = self.foundRealHuman and self.foundHuman
+
+
     def updateNode(self, instruction):
         """ updates visualization and publishes new scan data when a new node is reached
             instruction: new instruction
         """
-        self.currentI += 1 #increment instruction
-        newNode = self.solver.path[self.currentI]
-        
-        self.turn = True 
-        self.prevOdom = self.odom #update odometry
-        
-        wall = self.getWalls(instruction[1], newNode)
-        self.projected = self.projectMaze(wall) #get new laser scan 
-        
-        stamp = rospy.Time.now()
-        self.laserScan.ranges = tuple(self.projectMaze(wall)) #update laser scan
-        self.laserScan.header=Header(stamp=rospy.Time.now(),frame_id="base_laser_link")
-        fix_map_to_odom_transform(self, stamp, newNode, instruction[1], self.listener, self.broadcaster)
-        self.solver.visualize(newNode) #update visualization
+        self.detectHuman()
 
+        print "human", self.foundHuman
+        print "real human", self.foundRealHuman
 
+        self.foundRealHuman = True
+
+        if self.foundRealHuman:
+            self.currentI += 1 #increment instruction
+            newNode = self.solver.path[self.currentI]
+            
+            self.turn = True 
+            self.prevOdom = self.odom #update odometry
+            
+            wall = self.getWalls(instruction[1], newNode)
+            self.projected = self.projectMaze(wall) #get new laser scan 
+            
+            stamp = rospy.Time.now()
+            self.laserScan.ranges = tuple(self.projectMaze(wall)) #update laser scan
+            self.laserScan.header=Header(stamp=rospy.Time.now(),frame_id="base_laser_link")
+            fix_map_to_odom_transform(self, stamp, newNode, instruction[1], self.listener, self.broadcaster)
+            self.solver.visualize(newNode) #update visualization
+        
+        else:
+            self.twist.linear.x = 0 #stop the robot
+            self.twist.angular.z = 0 
 
     def performInstruction(self):
         """ sets twist and updates maze scan
@@ -93,6 +150,12 @@ class MazeNavigator(object):
 
         c = .5 #proportional control constant
         instruction = self.solver.instructions[self.currentI]
+
+        if not self.projected:
+            newNode = self.solver.path[self.currentI]
+            wall = self.getWalls(instruction[1], newNode)
+            self.projected = self.projectMaze(wall) #get new laser scan 
+
         diffPos, diffAng = self.calcDifference(instruction) #difference in position, difference in angle
 
         if abs(diffAng)%(2*math.pi) < .05: #turned to correct orientation
@@ -113,8 +176,8 @@ class MazeNavigator(object):
         """ calculate the difference in position and orientation between current and previous odometry
             returns tuple of form (difference in position, difference in orientation)
         """
-        distance = .5 #distance between nodes
-        diffPos = distance - math.sqrt((self.odom[0] - self.prevOdom[0])**2 + (self.odom[1] - self.prevOdom[1])**2)
+        
+        diffPos = self.nodeDistance - math.sqrt((self.odom[0] - self.prevOdom[0])**2 + (self.odom[1] - self.prevOdom[1])**2)
         diffAng = instruction[0] - angle_diff(self.odom[2],self.prevOdom[2])
         return diffPos, diffAng
 
@@ -139,42 +202,40 @@ class MazeNavigator(object):
             wall: list with binary entries, output from getWalls
             returns a list of length 359 with maze scan data to be published
         """
-        wallDistance = .2
-        maxDistance = .4
         projected = [0]*361
 
         for i in range(1, 360):
             if i <= 45 or i > 315:
                 if not wall[0]:
-                   projected[i] = wallDistance / math.cos(i*math.pi / 180)
+                   projected[i] = self.wallDistance / math.cos(i*math.pi / 180)
                 else:
                     c = 1.0 if i <= 45 else -1.0
-                    distance = wallDistance / math.sin(i*math.pi / 180) *c
-                    projected[i] = 0 if distance > maxDistance else distance
+                    distance = self.wallDistance / math.sin(i*math.pi / 180) *c
+                    projected[i] = 0 if distance > self.maxDistance else distance
 
             elif i <= 135:
                 if not wall[3]:
-                    projected[i] = wallDistance / math.sin(i*math.pi / 180)
+                    projected[i] = self.wallDistance / math.sin(i*math.pi / 180)
                 else:
                     c = 1.0 if i <= 90 else -1.0
-                    distance = wallDistance /  math.cos(i*math.pi / 180) * c
-                    projected[i] = 0 if distance > maxDistance else distance
+                    distance = self.wallDistance /  math.cos(i*math.pi / 180) * c
+                    projected[i] = 0 if distance > self.maxDistance else distance
 
             elif i <= 225:
                 if not wall[2]:
-                    projected[i] = wallDistance / -math.cos(i*math.pi / 180)
+                    projected[i] = self.wallDistance / -math.cos(i*math.pi / 180)
                 else:
                     c = 1.0 if i <= 180 else -1.0
-                    distance = wallDistance / math.sin(i*math.pi / 180) *c
-                    projected[i] = 0 if distance > maxDistance else distance
+                    distance = self.wallDistance / math.sin(i*math.pi / 180) *c
+                    projected[i] = 0 if distance > self.maxDistance else distance
 
             elif i <= 315:
                 if not wall[1]:
-                    projected[i] = wallDistance / -math.sin( i*math.pi / 180)
+                    projected[i] = self.wallDistance / -math.sin( i*math.pi / 180)
                 else:
                     c = -1.0 if i <= 270 else 1.0
-                    distance = wallDistance / math.cos(i*math.pi / 180)*c
-                    projected[i] = 0 if distance > maxDistance else distance
+                    distance = self.wallDistance / math.cos(i*math.pi / 180)*c
+                    projected[i] = 0 if distance > self.maxDistance else distance
         return projected
 
 
@@ -198,6 +259,8 @@ class MazeNavigator(object):
                 self.performInstruction()
                 self.pubScan.publish(self.laserScan) #publish scans
                 self.pubVel.publish(self.twist)
+                if self.point:
+                    self.pubToViz.publish(self.point)
                 r.sleep()
 
             else: 
