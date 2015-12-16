@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from matplotlib import patches, pyplot as plt
-
+import time
 
 
 class Node(object):
@@ -24,10 +24,12 @@ class Maze(object):
     """
     self.viz = viz
     self.size = size
+    self.show = True
     self.graph = [[0 for x in range(self.size)] for x in range(self.size)]
     self.stack = [(0,0)]
     self.recursiveBacktracking((0, 0))
     self.addEdges()
+    
 
   def getUnvisitedNodes(self, i, j):
     """ returns choices of neighboring nodes 
@@ -156,7 +158,10 @@ class Maze(object):
     plt.axis([-1, self.size, -1, self.size])
     plt.gca().set_axis_bgcolor('black')
     plt.show(False)
-    plt.pause(0.1)
+    if self.show:
+      time.sleep(3)
+      self.show = False
+    plt.pause(0.01)
 
 if __name__ == "__main__":
   m = Maze(5, viz=True)
