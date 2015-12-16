@@ -1,6 +1,6 @@
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from matplotlib import patches, pyplot as plt
 
 
 
@@ -18,7 +18,11 @@ class Node(object):
 class Maze(object):
   """ builds a maze
   """
-  def __init__(self, size):
+  def __init__(self, size, viz=False):
+    """ size: square length of the maze
+        viz: optional parameter to visualize the maze as it is generated
+    """
+    self.viz = viz
     self.size = size
     self.graph = [[0 for x in range(self.size)] for x in range(self.size)]
     self.stack = [(0,0)]
@@ -86,6 +90,8 @@ class Maze(object):
       if len(self.stack):
         newI, newJ = self.stack.pop() #highest priority in the stack
         self.updateNeighbors((newI, newJ), (i, j))
+        if self.viz:
+          self.visualize()
         self.recursiveBacktracking((newI, newJ))
       #else we have hit every node in the maze
 
@@ -119,6 +125,38 @@ class Maze(object):
         counter +=1
       if counter >= self.size - 2: #add size - 2 edges
         break
+
+  def visualize(self):
+    """ Plot the maze using matplotlib as it is generated
+        Shows a plot
+    """
+    plt.clf()
+    #plot maze
+    for i in range(self.size):
+      for j in range(self.size):
+        if self.graph[i][j]:
+          for n in self.graph[i][j].neighbors:
+            pd = 0.35
+            #vertical up from (i/n[0],j)
+            if i==n[0] and j < n[1]:
+              rectangle = patches.Rectangle((i-pd, j-pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            #vertical up from (i/n[0], n[1])
+            if i==n[0] and j > n[1]:
+              rectangle = patches.Rectangle((i-pd, n[1]-pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+            #horizontal (i,j/n[1])
+            if j==n[1] and i < n[0]:
+              rectangle = patches.Rectangle((i-pd , j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            #horizontal (n[0],j/n[1])
+            if j==n[1] and i > n[0]:
+              rectangle = patches.Rectangle((n[0]-pd, j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+            plt.gca().add_patch(rectangle)
+    plt.axis([-1, self.size, -1, self.size])
+    plt.gca().set_axis_bgcolor('black')
+    plt.show(False)
+    plt.pause(0.1)
+
+if __name__ == "__main__":
+  m = Maze(10, viz=True)
 
                                        
 

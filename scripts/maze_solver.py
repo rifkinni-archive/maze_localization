@@ -155,16 +155,6 @@ class MazeSolver():
     plt.pause(1)
 
 
-  def animate(self, current):
-    plt.clf()
-    self.visualize(self.start, self.goal)
-    radius = float(self.m.size)/40
-    location=plt.Circle(current, radius, color='k')
-    plt.gcf().gca().add_artist(location)
-    plt.show(False)
-    plt.pause(1)
-
-
 
 if __name__ == '__main__':
   def tester(current, _next):
