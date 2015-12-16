@@ -36,8 +36,6 @@ class Astar():
 			current = self.frontier.pop()[0] #coordinate with highest priority
 			if self.viz:
 				self.visualize(current, cost_so_far)
-				# plt.plot(current[0], current[1], 'black')
-				# plt.gcf().gca().add_artist(checked)
 
 
 			if current == self.goal: #if we found goal

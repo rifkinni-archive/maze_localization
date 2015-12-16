@@ -1,9 +1,11 @@
+import rospy
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
+from nav_msgs.msg import Odometry
 
 # import tf
 from tf import TransformListener
-from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
+from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix, quaternion_from_euler
 
 import math
 
@@ -50,24 +52,35 @@ def convert_pose_to_xy_and_theta(pose):
     angles = euler_from_quaternion(orientation_tuple)
     return pose.pose.position.x, pose.pose.position.y, angles[2]
 
-def fix_map_to_odom_transform(self, stamp):
+def fix_map_to_odom_transform(self, stamp, coord, orient, listener, broadcaster):
   """ This method constantly updates the offset of the map and 
       odometry coordinate systems based on the latest results from
-      the localizer
-      WHAT IS ROBOT POSE??? 
+      the localizer 
   """
-  p = PoseStamped(header=Header(stamp=stamp,
-                              frame_id="base_laser_link"),
-                pose=Pose())
-  odom_pose = TransformListener().transformPose("odom", p)
+  translation = (coord[0], coord[1], 0)
+  if orient == 1:
+    rotation = orient*math.pi/2 - math.pi/2
+  elif orient == 3:
+    rotation = orient*math.pi/2 - math.pi/2
+  elif orient == 0:
+    rotation = orient*math.pi/2 + math.pi/2  
+  elif orient == 2:
+    rotation = orient*math.pi/2 + math.pi/2
+  rotation = quaternion_from_euler(0, 0, rotation)
+  robot_pose = convert_translation_rotation_to_pose(translation, rotation)
 
-  tf_listener = TransformListener()
-  (translation, rotation) = convert_pose_inverse_transform(odom_pose)
+  (translation, rotation) = convert_pose_inverse_transform(robot_pose)
   pose = convert_translation_rotation_to_pose(translation,rotation)
   p = PoseStamped(pose=pose,
-                  header=Header(stamp=stamp,frame_id="base_laser_link"))
-  odom_to_map = self.tf_listener.transformPose(self.odom_frame, p)
-  return convert_pose_inverse_transform(odom_to_map.pose)
+                  header=Header(stamp=stamp,frame_id="base_link"))
+  listener.waitForTransform("/base_link", "/odom", stamp, rospy.Duration(0.5))
+  odom_to_map = listener.transformPose("odom", p)
+  translation, rotation = convert_pose_inverse_transform(odom_to_map.pose)
+  broadcaster.sendTransform(translation,
+                                  rotation,
+                                  rospy.get_rostime(),
+                                  "odom",
+                                  "maze_scan")
 
 def convert_translation_rotation_to_pose(translation, rotation):
   """ Convert from representation of a pose as translation and rotation (Quaternion) tuples to a geometry_msgs/Pose message """

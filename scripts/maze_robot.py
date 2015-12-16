@@ -11,6 +11,7 @@ from nav_msgs.msg import Odometry
 from maze_projector import MazeProjector
 from geometry_msgs.msg import Twist, Vector3
 from maze_solver import MazeSolver
+from tf import TransformListener, TransformBroadcaster
 from tf.transformations import euler_from_quaternion
 from helpers import *
 
@@ -26,6 +27,8 @@ class MazeNavigator(object):
         self.projected = []
 
         self.solver = MazeSolver()
+        self.listener = TransformListener()
+        self.broadcaster = TransformBroadcaster()
 
         self.currentI = 0 #index to keep track of our instruction
         self.twist = Twist()
@@ -76,8 +79,7 @@ class MazeNavigator(object):
         stamp = rospy.Time.now()
         self.laserScan.ranges = tuple(self.projectMaze(wall)) #update laser scan
         self.laserScan.header=Header(stamp=rospy.Time.now(),frame_id="base_laser_link")
-        # fix_map_to_odom_transform(self, stamp)
-        
+        fix_map_to_odom_transform(self, stamp, newNode, instruction[1], self.listener, self.broadcaster)
         self.solver.visualize(newNode) #update visualization
 
 
