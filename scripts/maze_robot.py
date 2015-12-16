@@ -97,7 +97,11 @@ class MazeNavigator(object):
         """
         self.detectHuman()
         print "human", self.foundHuman
-        if self.foundHuman and not self.projected:
+        if not self.projected:
+            self.foundRealHuman = True
+        else:
+            self.foundRealHuman = False
+        if self.foundHuman and self.projected:
             print "angle stuff",self.angle_centroid*180/math.pi
             print self.projected
             self.humanDistance= self.projected[int(self.angle_centroid*180/math.pi)]
@@ -107,6 +111,8 @@ class MazeNavigator(object):
                 self.foundRealHuman = True
             else:
                 self.foundRealHuman = False
+
+        print "real human", self.foundRealHuman
 
         if self.foundRealHuman:
 
@@ -130,6 +136,7 @@ class MazeNavigator(object):
             self.twist.linear.x = 0 #stop the robot
             self.twist.angular.z = 0
             print "real human not found" 
+        print "------"
 
     def performInstruction(self):
         """ sets twist and updates maze scan
