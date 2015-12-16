@@ -16,11 +16,11 @@ class MazeSolver():
 
     self.start = (0, 0)
     self.goal = (random.randint(0, self.m.size - 1), random.randint(0, self.m.size - 1)) #random point in the maze
-
-    self.a = Astar(self.m.graph,self.start, self.goal) #solve maze using astar
+    self.visualizeAstar()
+    self.a = Astar(self.m.graph,self.start, self.goal, viz=True) #solve maze using astar
     self.path = self.getPath()
+    # self.visualizeAstarPath()
     self.instructions = self.getInstructions()
-    # self.visualize() #graph the maze using matplotlib
 
 
   def getInstructions(self):
@@ -111,6 +111,43 @@ class MazeSolver():
     path.append(node) #add the last node
     return list(reversed(path)) #reverse since we started from goal
 
+  def visualizeAstar(self):
+    plt.clf()
+    #plot maze
+    for i in range(self.m.size):
+      for j in range(self.m.size):
+        for n in self.m.graph[i][j].neighbors:
+          pd = 0.35
+          #vertical up from (i/n[0],j)
+          if i==n[0] and j < n[1]:
+            rectangle = patches.Rectangle((i-pd, j-pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+          #vertical up from (i/n[0], n[1])
+          if i==n[0] and j > n[1]:
+            rectangle = patches.Rectangle((i-pd, n[1]-pd), 2*pd, 1 + 2*pd, linewidth=0, fc ='w')
+          #horizontal (i,j/n[1])
+          if j==n[1] and i < n[0]:
+            rectangle = patches.Rectangle((i-pd , j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+          #horizontal (n[0],j/n[1])
+          if j==n[1] and i > n[0]:
+            rectangle = patches.Rectangle((n[0]-pd, j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
+          plt.gca().add_patch(rectangle)
+    radius = float(self.m.size)/40
+    plt.axis([-1, self.m.size, -1, self.m.size])
+    begin=plt.Circle(self.start, radius, color='r')
+    end=plt.Circle(self.goal, radius,color='g')
+    plt.gcf().gca().add_artist(begin)
+    plt.gcf().gca().add_artist(end)
+    plt.gca().set_axis_bgcolor('black')
+    plt.show(False)
+    plt.pause(0.01)
+
+  # def visualizeAstarPath(self):
+  #   self.visualizeAstar()
+  #   for i in range(len(self.path) -1):
+  #     x1, x2, y1, y2 = (self.path[i][0], self.path[i + 1][0], self.path[i][1], self.path[i + 1][1])
+  #     plt.plot([x1, x2], [y1, y2], 'red')
+  #     plt.show(False)
+  #     plt.pause(0.01)
 
   def visualize(self, current):
     """ Plot the maze, starting point, ending point, and path using matplotlib
@@ -151,21 +188,28 @@ class MazeSolver():
     for i in range(len(self.path) -1):
       x1, x2, y1, y2 = (self.path[i][0], self.path[i + 1][0], self.path[i][1], self.path[i + 1][1])
       plt.plot([x1, x2], [y1, y2], 'red')
+
     plt.show(False)
-    plt.pause(1)
+    plt.pause(0.01)
 
 
 
 if __name__ == '__main__':
+
+  solver = MazeSolver()
+  for node in solver.path:
+    solver.visualize(node)
+
+
   def tester(current, _next):
     """ This was an original brute force function for determining orientation
         It is used to compare results and test with a much cleaner and more compact function
     """
     if current == _next:
-      return 0, _next, "no turn"
+      return 0, "no turn"
 
     elif abs(current - _next) == 2:
-      return math.pi, _next, "full"
+      return math.pi, "full"
 
     elif current == 1  or current == 2:
       if _next - current > 0:
@@ -182,11 +226,6 @@ if __name__ == '__main__':
         return -math.pi/2, "right"
       else:
         return math.pi/2, "left"
-
-
-  solver = MazeSolver()
-  for node in solver.path:
-    solver.visualize(node)
 
   #unit testing
   for i in [0, 1, 2, 3]:

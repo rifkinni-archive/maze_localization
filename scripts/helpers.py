@@ -53,7 +53,8 @@ def convert_pose_to_xy_and_theta(pose):
 def fix_map_to_odom_transform(self, stamp):
   """ This method constantly updates the offset of the map and 
       odometry coordinate systems based on the latest results from
-      the localizer 
+      the localizer
+      WHAT IS ROBOT POSE??? 
   """
   p = PoseStamped(header=Header(stamp=stamp,
                               frame_id="base_laser_link"),
