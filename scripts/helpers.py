@@ -59,13 +59,13 @@ def fix_map_to_odom_transform(self, stamp, coord, orient, listener, broadcaster)
   """
   translation = (coord[0], coord[1], 0)
   if orient == 1:
-    rotation = orient*math.pi/2 - math.pi/2
+    rotation = orient*math.pi/2 - math.pi/2 #1 => 0
   elif orient == 3:
-    rotation = orient*math.pi/2 - math.pi/2
+    rotation = orient*math.pi/2 - math.pi/2 #2 => pi
   elif orient == 0:
-    rotation = orient*math.pi/2 + math.pi/2  
+    rotation = orient*math.pi/2 + math.pi/2  #0 => pi/2
   elif orient == 2:
-    rotation = orient*math.pi/2 + math.pi/2
+    rotation = orient*math.pi/2 + math.pi/2 #2 => 3pi/2
   rotation = quaternion_from_euler(0, 0, rotation)
   robot_pose = convert_translation_rotation_to_pose(translation, rotation)
 

@@ -77,9 +77,10 @@ class MazeNavigator(object):
             self.prevOdom = self.odom #no change
 
     def detectHuman(self):
-        """ look at the robot's scan and detect where the centroid of the human is """
+        """ look at the robot's scan and detect where the centroid of the human is 
+        """
 
-        # find a cluster of points within certain
+        # find a cluster of points within certain range
         objectdict = {}
         sumx = 0
         sumy = 0
@@ -90,22 +91,23 @@ class MazeNavigator(object):
                 objectdict[i] = [locX, locY]
                 sumx += locX
                 sumy += locY
-        if len(objectdict) !=0:
+        if len(objectdict) !=0: #found a human
+            #publish the centroid for rViz
             centroid = [sumx/len(objectdict), sumy/len(objectdict)]
             self.dist_centroid = math.sqrt(centroid[0]**2 + centroid[1]**2)
             self.angle_centroid = math.atan2(centroid[1],centroid[0])
             self.point = PointStamped(point=Point(x=-centroid[0], y=-centroid[1]), header=Header(stamp=rospy.Time.now(), frame_id='base_laser_link'))
             self.foundHuman = True
-        else:
+        else: #no human found
             self.foundHuman = False
         
-        if self.foundHuman and self.projected:
+        if self.foundHuman and self.projected: #compare human location to wall locations
             self.projectedDistance = self.projected[int(self.angle_centroid*180/math.pi)]
 
-            if self.projectedDistance == 0 or self.projectedDistance > self.dist_centroid:
+            if self.projectedDistance == 0 or self.projectedDistance > self.dist_centroid: #human closer than
                 self.foundRealHuman = True
-            else:
-                self.foundRealHuman = False
+            else: #if human is behind a 'wall'
+                self.foundRealHuman = False #no human
 
         self.foundRealHuman = self.foundRealHuman and self.foundHuman
 
@@ -115,11 +117,6 @@ class MazeNavigator(object):
             instruction: new instruction
         """
         self.detectHuman()
-
-        print "human", self.foundHuman
-        print "real human", self.foundRealHuman
-
-        self.foundRealHuman = True
 
         if self.foundRealHuman:
             self.currentI += 1 #increment instruction
@@ -134,7 +131,7 @@ class MazeNavigator(object):
             stamp = rospy.Time.now()
             self.laserScan.ranges = tuple(self.projectMaze(wall)) #update laser scan
             self.laserScan.header=Header(stamp=rospy.Time.now(),frame_id="base_laser_link")
-            fix_map_to_odom_transform(self, stamp, newNode, instruction[1], self.listener, self.broadcaster)
+            fix_map_to_odom_transform(self, stamp, newNode, instruction[1], self.listener, self.broadcaster) #transform coordinate frames
             self.solver.visualize(newNode) #update visualization
         
         else:
@@ -238,17 +235,6 @@ class MazeNavigator(object):
                     projected[i] = 0 if distance > self.maxDistance else distance
         return projected
 
-
-    def convert_pose_to_xy_and_theta(self, pose):
-        """ pose: geometry_msgs.Pose object
-            returns tuple of form (x, y, yaw)
-        """
-        orientation_tuple = (pose.pose.orientation.x,
-                             pose.pose.orientation.y,
-                             pose.pose.orientation.z,
-                             pose.pose.orientation.w)
-        angles = euler_from_quaternion(orientation_tuple)
-        return pose.pose.position.x, pose.pose.position.y, angles[2]
             
     def run(self):
         """ Our main 5Hz run loop

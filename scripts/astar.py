@@ -82,6 +82,8 @@ class Astar():
 		self.frontier.sort(key= lambda prior: prior[1]) #sort by priority
 
 	def visualize(self, current, cost_so_far):
+		"""	Plot path and weights on the matplotlib maze plot
+		"""
 		plt.gca().text(current[0], current[1], str(cost_so_far[current]), fontsize=14, color='red')
 		last = self.came_from[current]
 		if last:

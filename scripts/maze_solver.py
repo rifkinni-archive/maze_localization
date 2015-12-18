@@ -114,6 +114,9 @@ class MazeSolver():
     return list(reversed(path)) #reverse since we started from goal
 
   def visualizeAstar(self):
+    """ Plot the maze, starting point, ending point
+        Path and weights get filled in by astar vizualize function
+    """
     plt.clf()
     #plot maze
     for i in range(self.m.size):
@@ -133,6 +136,7 @@ class MazeSolver():
           if j==n[1] and i > n[0]:
             rectangle = patches.Rectangle((n[0]-pd, j-pd), 1 + 2*pd, 2*pd, linewidth=0, fc ='w')
           plt.gca().add_patch(rectangle)
+    #plot start and end dots
     radius = float(self.m.size)/40
     plt.axis([-1, self.m.size, -1, self.m.size])
     begin=plt.Circle(self.start, radius, color='r')
@@ -142,7 +146,7 @@ class MazeSolver():
     plt.gca().set_axis_bgcolor('black')
     
     plt.show(False)
-    plt.pause(0.01)
+    plt.pause(0.0001)
     if self.wait:
       time.sleep(3);
 
